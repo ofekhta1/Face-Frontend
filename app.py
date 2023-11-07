@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
 APP_DIR = os.path.dirname(__file__)
+i=2
 STATIC_FOLDER = os.path.join(APP_DIR, "static")
 SERVER_URL="http://127.0.0.1:5000";
 # Create the folders if they don't exist
