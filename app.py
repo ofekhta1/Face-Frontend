@@ -150,8 +150,17 @@ def index():
             url=SERVER_URL+"/api/improve";
             response=req.post(url,data={"images":current_images})
             data=response.json();
+            errors=errors+data['errors'];
             current_images.clear()
-            current_images.append(data['enhanced_images']);
+            if(len(data)>1):
+             current_images.append(data['enhanced_images']);
+             if(data['enhanced_images2'] is not ''):
+                current_images.append(data['enhanced_images2']);
+
+
+
+
+        
         elif action =="Check_family":
              url=SERVER_URL+"/api/check_family";
              response=req.post(url,data={"images":current_images})
