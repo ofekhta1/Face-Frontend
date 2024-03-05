@@ -6,11 +6,12 @@ import tempfile
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import json
+from modules import AppPaths,upload_from_request,saveTempFiles,extract_face_selection_from_request
 
 
 APP_DIR = os.path.dirname(__file__)
 STATIC_FOLDER = os.path.join(APP_DIR, "static")
-SERVER_URL = "http://127.0.0.1:5057"
+SERVER_URL = AppPaths.SERVER_URL
 # Create the folders if they don't exist
 os.makedirs(STATIC_FOLDER, exist_ok=True)
 
@@ -52,18 +53,7 @@ app.config["ROOT_FOLDER"] = APP_DIR
 app.config["SERVER_URL"] = SERVER_URL
 
 
-def saveTempFiles(temp_dir, files):
-    saved_files = {}
-    for key, file in files.items():
-        if file.filename != "":
-<<<<<<< HEAD
-            file_path = os.path.join(temp_dir,file.filename);
-=======
-            file_path = os.path.join(temp_dir,file.filename)
->>>>>>> a6e5f0c28dc663d2a110759abee6ad54f7daf7c8
-            file.save(file_path)
-            saved_files[key] = open(file_path, "rb")
-    return saved_files
+
 
 
 @app.route("/clustering", methods=["GET", "POST"])
@@ -85,7 +75,71 @@ def clustering():
         errors=errors,
         messages=messages,
     )
+@app.route("/check_family", methods=["GET", "POST"])
+def check_family():
+    images = []
+    messages = []
+    errors = []
 
+    faces_length = session.get("faces_length", [0, 0])
+    current_images = session.get("current_images", [])
+    combochanges = session.get("selected_faces", [-2, -2])
+    if request.method == "POST":
+        combochanges= extract_face_selection_from_request(request);
+        action = request.form.get("action")
+        if(action=="Upload"):
+            upload_from_request(request,current_images,faces_length)
+        elif(action=="Check_Family"):
+            url = SERVER_URL + "/api/check_family"
+            response = req.post(url, data={"images": current_images,"selected_faces":combochanges})
+            data = response.json()
+            errors = errors + data["errors"]
+            messages = messages + data["messages"]
+        elif action == "Clear":
+            current_images = []
+            combochanges=[-2,-2]
+            faces_length = [0, 0]
+
+    session["current_images"] = current_images
+    session["selected_faces"] = combochanges
+    session["faces_length"] = faces_length
+    return render_template(
+        "check_family.html",
+        images=images,
+        current=current_images,
+        faces_length=faces_length,
+        selected_faces=combochanges,
+        errors=errors,
+        messages=messages,
+    )
+
+
+@app.route("/template_matching", methods=["GET", "POST"])
+def template_matching():
+    messages = []
+    errors = []
+    current_images = session.get("current_template_images", [None,None])
+    if request.method == "POST":
+        action = request.form.get("action")
+        if(action=="Upload"):
+            upload_from_request(request,current_images,[],save_invalid=True)
+        elif(action=="Match_Template"):
+            url = SERVER_URL + "/api/check_template"
+            response = req.post(url, data={"template": current_images[0]})
+            data = response.json()
+            errors = errors + data["errors"]
+            messages = messages + data["messages"]
+        elif action == "Clear":
+            current_images = []
+    
+
+    session["current_template_images"] = current_images
+    return render_template(
+        "template_matching.html",
+        current=current_images,
+        errors=errors,
+        messages=messages,
+    )
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -99,44 +153,11 @@ def index():
     combochanges = session.get("selected_faces", [-2, -2])
 
     if request.method == "POST":
-        face_num_1 = request.form.get("face_num1")
-        face_num_2 = request.form.get("face_num2")
-        face_num_1 = -2 if request.form.get("face_num1") == "" else int(face_num_1)
-        face_num_2 = -2 if request.form.get("face_num2") == "" else int(face_num_2)
-        combochanges = [face_num_1, face_num_2]
+        combochanges= extract_face_selection_from_request(request);
         action = request.form.get("action")
         if action == "Upload":
-            with tempfile.TemporaryDirectory() as temp_dir:
-                saved_files = saveTempFiles(temp_dir, request.files)
-                if len(saved_files) > 0:
-                    response = req.post(SERVER_URL + "/api/upload", files=saved_files)
-                    data = response.json()
-                    saved_files
-                    errors = errors + data["errors"]
-                    if len(data["images"]) > 0:
-                        max_size = 2
-                        initial = len(current_images) - 1
-                        uploaded = [
-                            x.filename
-                            for x in request.files.values()
-                            if x.filename != ""
-                        ]
-                        for i in range(len(uploaded)):
-                            current_index = (initial + 1 + i) % max_size
-                            if current_index == initial + 1:
-                                current_images.append(data["images"][i])
-                            else:
-                                current_images[current_index] = data["images"][i]
-                            faces_length[current_index] = data["faces_length"][i]
-
-                    uploaded_images = uploaded_images + data["images"]
-                    for saved in saved_files.values():
-                        saved.close();
-                else:
-                    errors.append(
-                        "Saving Images failed,make sure you uploaded 2 valid images"
-                    )
-
+            temp_err=upload_from_request(request,current_images,faces_length)
+            errors=errors+temp_err
         elif action in ["Detect", "Align"]:
             if action == "Align":
                 url = SERVER_URL + "/api/align"
@@ -199,12 +220,7 @@ def index():
             if len(data) > 1:
                 current_images=data["enhanced_images"];
 
-        elif action == "Check_family":
-            url = SERVER_URL + "/api/check_family"
-            response = req.post(url, data={"images": current_images})
-            data = response.json()
-            errors = errors + data["errors"]
-            messages = messages + data["messages"]
+ 
 
 
         session["current_images"] = current_images
