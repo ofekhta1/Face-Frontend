@@ -118,7 +118,7 @@ def check_family():
 def template_matching():
     messages = []
     errors = []
-    current_images = session.get("current_template_images", [None,None])
+    current_images = session.get("current_template_images", [])
     if request.method == "POST":
         action = request.form.get("action")
         if(action=="Upload"):
