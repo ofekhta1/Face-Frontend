@@ -56,7 +56,7 @@ def saveTempFiles(temp_dir, files):
     saved_files = {}
     for key, file in files.items():
         if file.filename != "":
-            file_path = f"{temp_dir}/{file.filename}"
+            file_path = os.path.join(temp_dir,file.filename);
             file.save(file_path)
             saved_files[key] = open(file_path, "rb")
     return saved_files
