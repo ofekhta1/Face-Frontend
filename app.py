@@ -56,7 +56,11 @@ def saveTempFiles(temp_dir, files):
     saved_files = {}
     for key, file in files.items():
         if file.filename != "":
+<<<<<<< HEAD
             file_path = os.path.join(temp_dir,file.filename);
+=======
+            file_path = os.path.join(temp_dir,file.filename)
+>>>>>>> a6e5f0c28dc663d2a110759abee6ad54f7daf7c8
             file.save(file_path)
             saved_files[key] = open(file_path, "rb")
     return saved_files
@@ -107,6 +111,7 @@ def index():
                 if len(saved_files) > 0:
                     response = req.post(SERVER_URL + "/api/upload", files=saved_files)
                     data = response.json()
+                    saved_files
                     errors = errors + data["errors"]
                     if len(data["images"]) > 0:
                         max_size = 2
@@ -125,6 +130,8 @@ def index():
                             faces_length[current_index] = data["faces_length"][i]
 
                     uploaded_images = uploaded_images + data["images"]
+                    for saved in saved_files.values():
+                        saved.close();
                 else:
                     errors.append(
                         "Saving Images failed,make sure you uploaded 2 valid images"
@@ -143,7 +150,9 @@ def index():
                 errors = errors + data["errors"]
                 # current_images=data['images']
                 messages = messages + data["messages"]
-                faces_length = data["faces_length"]
+                # faces_length = data["faces_length"]
+                for i in range(len(data['faces_length'])):
+                    faces_length[i]=data['faces_length'][i]
             else:
                 errors.append("No images uploaded!")
         elif action == "Clear":
