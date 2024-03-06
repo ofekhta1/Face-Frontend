@@ -1,34 +1,6 @@
 "use strict";
 
-async function loadImage(canvas, src) {
-  const ctx = canvas.getContext("2d");
 
-  const img = new Image();
-  return new Promise((resolve,reject)=>{
-  img.onload = function () {
-    const displaySize = { width: img.width, height: img.height };
-    faceapi.matchDimensions(canvas, displaySize);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    resolve()
-  };
-  img.onerror=(error)=> reject(error);
-  img.src = src; // Replace with your image URL
-});
-}
-
-function getImgParams($comboBox, areaNumber) {
-  const faceNum = parseInt($comboBox.val());
-  const fileName = current_images[areaNumber - 1];
-  return { faceNum, fileName };
-}
-async function getFacePath($comboBox, areaNumber) {
-  let $params = getImgParams($comboBox, areaNumber);
-  let path = "";
-  let face_num = $params.faceNum;
-  path = SERVER_URL + `/pool/${$params.fileName}`;
-  const exists = await checkFileExists(path);
-  return { path, exists, face_num };
-}
 function setupDropArea($dropArea, areaNumber) {
   const $img = $dropArea.find("canvas");
   const $content = $dropArea.find(`#dragarea${areaNumber}-content`);
@@ -83,19 +55,7 @@ function setupDropArea($dropArea, areaNumber) {
     $("button").prop("disabled", true);
     $("input[type='button'], input[type='submit']").prop("disabled", true);
   });
-  $comboBox.on("change", async function () {
-    let result = await getFacePath($(this), areaNumber);
-    if (result.exists) {
-      //display
-      $(`#face_num_input${areaNumber}`).val(result.face_num);
-      await loadImage($img[0], result.path);
 
-      $img.removeClass("d-none");
-      $dropArea.removeClass("p-5");
-    } else {
-      // align and then display
-    }
-  });
   return { $img, $content, $dragText, $button, $input, $comboBox };
 }
 const dropArea1Elements = setupDropArea($("#dragarea1"), 1);
@@ -109,11 +69,23 @@ $(document).ready(function () {
     if (current_images[index] != undefined && current_images[index] !== "") {
       let path;
       path = SERVER_URL + `/pool/${current_images[index]}`;
-      loadImage($imgs[index][0], path);
+      loadImage($imgs[index][0], path).then(() => {
+        if (detection.length > 0) {
+          let drawOptions = {
+            label: `detection`,
+            lineWidth: 10
+          }
+          let box = { x: detection[0], y: detection[1], width: detection[2] - detection[0], height: detection[3] - detection[1] }
+          let drawBox = new faceapi.draw.DrawBox(box, drawOptions)
+          drawBox.draw($imgs[1][0])
+        }
+      });
+
       $imgs[index].removeClass("d-none");
       $imgs[index].removeClass("p-5");
     }
   }
+
 });
 
 function deleteImage(button) {

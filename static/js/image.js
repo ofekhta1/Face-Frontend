@@ -4,21 +4,7 @@ $('#showFormButton').on('click', function() {
   $('#downloadForm').toggle();
 });
 
-async function loadImage(canvas, src) {
-  const ctx = canvas.getContext("2d");
 
-  const img = new Image();
-  return new Promise((resolve,reject)=>{
-  img.onload = function () {
-    const displaySize = { width: img.width, height: img.height };
-    faceapi.matchDimensions(canvas, displaySize);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    resolve()
-  };
-  img.onerror=(error)=> reject(error);
-  img.src = src; // Replace with your image URL
-});
-}
 $("#startVideoBtn").on("click", function () {
   const video = $("#video")[0]; // Get the video element using jQuery
   if (current_images.length === 0) {

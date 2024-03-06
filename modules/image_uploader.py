@@ -29,11 +29,9 @@ def upload_from_request(request,current_images,faces_length,save_invalid=False):
                     current_index = (initial + 1 + i) % max_size
                     if current_index == initial + 1:
                         current_images.append(uploaded[i])
-                        faces_length.append(data["faces_length"][i])
-
                     else:
                         current_images[current_index] = uploaded[i]
-                        faces_length[current_index] = data["faces_length"][i]
+                    faces_length[current_index] = data["faces_length"][i]
 
 
             for saved in saved_files.values():

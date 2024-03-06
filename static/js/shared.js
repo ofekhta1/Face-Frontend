@@ -65,6 +65,24 @@ function makeCanvas(src) {
     resolve(canvas);
   });
 }
+
+
+async function loadImage(canvas, src) {
+  const ctx = canvas.getContext("2d");
+
+  const img = new Image();
+  return new Promise((resolve,reject)=>{
+  img.onload = function () {
+    const displaySize = { width: img.width, height: img.height };
+    faceapi.matchDimensions(canvas, displaySize);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    resolve()
+  };
+  img.onerror=(error)=> reject(error);
+  img.src = src; // Replace with your image URL
+});
+}
+
 function sendJsonFormPost(endpoint,data){
   const form = document.createElement('form');
     form.action = `/${endpoint}`;

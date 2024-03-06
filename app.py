@@ -118,17 +118,27 @@ def check_family():
 def template_matching():
     messages = []
     errors = []
+    box=[]
     current_images = session.get("current_template_images", [])
     if request.method == "POST":
         action = request.form.get("action")
         if(action=="Upload"):
-            upload_from_request(request,current_images,[],save_invalid=True)
+            upload_from_request(request,current_images,[0,0],save_invalid=True)
         elif(action=="Match_Template"):
-            url = SERVER_URL + "/api/check_template"
-            response = req.post(url, data={"template": current_images[0]})
-            data = response.json()
-            errors = errors + data["errors"]
-            messages = messages + data["messages"]
+            if(len(current_images)==0):
+                errors.append("Upload a template first!")
+            else:
+                url = SERVER_URL + "/api/check_template"
+                response = req.post(url, data={"template": current_images[0]})
+                data = response.json()
+                errors = errors + data["errors"]
+                if(len(errors)==0):
+                    if(len(current_images)==1):
+                        current_images.append(data['image']);
+                    else:
+                        current_images[1]=data['image']
+                    box=data['box'];
+                messages = messages + data["messages"]
         elif action == "Clear":
             current_images = []
     
@@ -136,6 +146,7 @@ def template_matching():
     session["current_template_images"] = current_images
     return render_template(
         "template_matching.html",
+        box=box,
         current=current_images,
         errors=errors,
         messages=messages,
