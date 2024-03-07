@@ -1,0 +1,50 @@
+{% extends "base.html" %} {% block title %} Upload{% endblock %} {%
+block content %}
+
+<div class="content">
+    <h1 class="text-light m-4 text-center -select-none">Upload</h1>
+    <div class="main-container mb-5">
+        <form action="/upload" method="POST" enctype="multipart/form-data" class="w-100">
+
+            <div class="d-flex align-items-center justify-content-center 
+            flex-column">
+                <div class="row g-3 mb-3 align-items-center" method="POST" action="/download">
+
+                    <div class="col-auto">
+                        <label for="websiteUrl" class="visually-hidden">Website Url</label>
+                    </div>
+                    <div class="col-auto">
+                        <input type="url" class="form-control" id="websiteUrl" name="website_url">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-light browse-btn ">Download</button>
+                    </div>
+                </div>
+
+                <header class="h4 text-light user-select-none text-center">
+                    Upload From URL
+                </header>
+                <span class="h3 text-light user-select-none">OR</span>
+                <button type="button" class="browse-btn btn  btn-light px-4 py-2">
+                    Upload zip
+                </button>
+            </div>
+    </div>
+
+    <!-- <div class=" d-flex col-2 flex-column align-items-center">
+                <input type="submit" name="action" value="Match_Template" class="submit-btn w-75 m-2" />
+                <input type="submit" name="action" value="Clear" class="submit-btn w-75 m-2" />
+            </div> -->
+
+</div>
+</form>
+</div>
+</div>
+
+<script>
+
+
+</script>
+<script src="{{url_for('static', filename='js/upload.js')}}"></script>
+
+{% endblock %}

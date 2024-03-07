@@ -82,7 +82,6 @@ async function loadImage(canvas, src) {
   img.src = src; // Replace with your image URL
 });
 }
-
 function sendJsonFormPost(endpoint,data){
   const form = document.createElement('form');
     form.action = `/${endpoint}`;

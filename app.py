@@ -6,8 +6,8 @@ import tempfile
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import json
-from modules import AppPaths,upload_from_request,saveTempFiles,extract_face_selection_from_request
-
+from modules import AppPaths,upload_from_request,extract_face_selection_from_request
+import zipfile
 
 APP_DIR = os.path.dirname(__file__)
 STATIC_FOLDER = os.path.join(APP_DIR, "static")
@@ -112,8 +112,24 @@ def check_family():
         errors=errors,
         messages=messages,
     )
-
-
+@app.route("/upload",methods=["GET","POST"])
+def upload():
+    messages = []
+    errors = []
+    if(request.method=="POST"):
+        file = request.files['zip_file']  
+        file_like_object = file.stream._file  
+        zipfile_ob = zipfile.ZipFile(file_like_object)
+        file_names = zipfile_ob.namelist()
+        # Filter names to only include the filetype that you want:
+        file_names = [file_name for file_name in file_names if file_name.endswith(".txt")]
+        files = [(zipfile_ob.open(name).read(),name) for name in file_names]
+        return str(files)
+    return render_template(
+        "upload.html",
+        errors=errors,
+        messages=messages,
+    )
 @app.route("/template_matching", methods=["GET", "POST"])
 def template_matching():
     messages = []
