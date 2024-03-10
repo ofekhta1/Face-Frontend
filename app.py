@@ -10,6 +10,7 @@ import json
 
 APP_DIR = os.path.dirname(__file__)
 STATIC_FOLDER = os.path.join(APP_DIR, "static")
+# UPLOAD_FOLDER = os.path.join(APP_DIR, "pool")
 SERVER_URL = "http://127.0.0.1:5057"
 # Create the folders if they don't exist
 os.makedirs(STATIC_FOLDER, exist_ok=True)
@@ -88,11 +89,26 @@ def index():
     images = []
     messages = []
     errors = []
+    options=[]
 
     uploaded_images = session.get("uploaded_images", [])
     faces_length = session.get("faces_length", [0, 0])
     current_images = session.get("current_images", [])
+    #current_detect_images="detected_"+current_images
     combochanges = session.get("selected_faces", [-2, -2])
+    checked_images1 = request.form.get('image_selection1')
+    checked_images2 = request.form.get('image_selection2')
+    if(checked_images1=="image1"):
+        checked_images1=True
+    else:
+        checked_images1=False
+
+
+    if(checked_images2=="image2"):
+        checked_images2=True
+    else:
+        checked_images2=False
+
 
     if request.method == "POST":
         face_num_1 = request.form.get("face_num1")
@@ -147,14 +163,36 @@ def index():
                 # current_images=data['images']
                 messages = messages + data["messages"]
                 # faces_length = data["faces_length"]
+                # detected_filename = "detected_" + uploaded_images[0]
+                # detected_path = os.path.join(UPLOAD_FOLDER, uploaded_images[1])
+                # os.remove(detected_path)
                 for i in range(len(data['faces_length'])):
                     faces_length[i]=data['faces_length'][i]
             else:
                 errors.append("No images uploaded!")
         elif action == "Clear":
+            length=len(current_images)
+            # url = SERVER_URL + "/api/clear"
+            if((checked_images1==True) and(len(current_images))>=1):
+                 del current_images[0]
+                 length=length-1
+            if((checked_images2==True) and(len(current_images))>=1):
+                 if(length==2):
+                   del current_images[1]
+                 else:
+                    del current_images[0]
+              
+
             uploaded_images = []
-            current_images = []
+            #current_images = []
             faces_length = [0, 0]
+            
+            # response = req.post(
+            #     url, data={"images": current_images, "selected_faces": combochanges, "checked_images1": checked_images1, "checked_images2": checked_images2}
+            # )
+            # data = response.json()
+            # errors = errors + data["errors"]
+            # messages = messages + data["messages"]
 
         elif action == "Compare":
             url = SERVER_URL + "/api/compare"
@@ -188,9 +226,12 @@ def index():
         
         elif action == "improve":
             url = SERVER_URL + "/api/improve"
-            response = req.post(url, data={"images": current_images})
+            response = req.post(url, data={"images": current_images, "checked_images1": checked_images1, "checked_images2": checked_images2})
             data = response.json()
             errors = errors + data["errors"]
+            messages = messages+data["messages"]
+            options=options+data["options"]
+            #checked_images=checked_images+data["checked_images"]
             current_images.clear()
             if len(data) > 1:
                 current_images=data["enhanced_images"];
@@ -202,15 +243,17 @@ def index():
             errors = errors + data["errors"]
             messages = messages + data["messages"]
 
-
+        
         session["current_images"] = current_images
         session["selected_faces"] = combochanges
         session["uploaded_images"] = uploaded_images
         session["faces_length"] = faces_length
 
     images = uploaded_images
-
-    return render_template(
+    
+    action = request.form.get("action")
+    if action != "Detect":
+     return render_template(
         "image.html",
         images=images,
         current=current_images,
@@ -218,7 +261,20 @@ def index():
         selected_faces=combochanges,
         errors=errors,
         messages=messages,
+        options=options
     )
+    else:
+       return render_template(
+    "image.html",
+    images=images,  
+    current=images[1:],  
+    faces_length=faces_length,
+    selected_faces=combochanges,
+    errors=errors,
+    messages=messages,
+    options=options
+)
+        
 
 
 @app.route("/download", methods=["POST"])

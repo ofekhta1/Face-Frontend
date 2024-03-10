@@ -181,6 +181,7 @@ function setupDropArea($dropArea, areaNumber) {
     $("button").prop("disabled", true);
     $("input[type='button'], input[type='submit']").prop("disabled", true);
   });
+  
   $comboBox.on("change", async function () {
     let result = await getFacePath($(this), areaNumber);
     if (result.exists) {
@@ -195,7 +196,11 @@ function setupDropArea($dropArea, areaNumber) {
     }
   });
   return { $img, $content, $dragText, $button, $input, $comboBox };
+  
 }
+
+
+
 const dropArea1Elements = setupDropArea($("#dragarea1"), 1);
 const dropArea2Elements = setupDropArea($("#dragarea2"), 2);
 let file;

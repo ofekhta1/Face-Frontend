@@ -24,10 +24,19 @@ block content %}
                 {% for i in range(2) %}
                 <div class="d-flex flex-column col-4">
                     <!-- Drag area  -->
+                    
 
                     <div id="dragarea{{i+1}}" class="drag-area position-relative d-flex align-items-center 
                         justify-content-center flex-column rounded-top-0 p-5
                         {{'active' if current|length>0 else 'inactive'}}">
+                        <div class="drag-area">
+                            <!-- Checkbox positioned at the top left of the drag area -->
+                            <div class="checkbox-top-left">
+                                <input class="form-check-input" type="checkbox" name="image_selection{{i+1}}" value="image{{i+1}}" id="imageSelection{{i+1}}" checked>
+                                <label class="form-check-label" for="imageSelection{{i+1}}">Choose Image {{i+1}}</label>
+                            </div>
+    
+                        </div>
                         {%if current[i]%}
                         <div
                             class="w-100 bg-dark text-light text-truncate rounded-top-1 position-absolute top-0 z-3 p-1 text-center fw-bold">
@@ -86,7 +95,12 @@ block content %}
                     <input type="submit" name="action" value="Detect" class="submit-btn w-75 m-2" />
                     <input type="submit" name="action" value="Check" class="submit-btn w-75 m-2" />
                     <input type="submit" name="action" value="Check_family" class="submit-btn w-75 m-2" />
-                    <input type="submit" name="action" value="improve" class="submit-btn w-75 m-2" />
+                    <button type="submit" name="action" value="improve" class="submit-btn w-75 m-2" onclick="toggleButton(this);">
+                        <span>Improve</span>
+                    </button>
+                    <!-- <input type="submit" name="action" value="improve" class="submit-btn w-75 m-2" /> -->
+                    <!-- <input type="checkbox" name="image_selection1" value="image1">
+                    <input type="checkbox" name="image_selection2" value="image2"> -->
                     {% if current | length == 2%}
                     <input type="submit" name="action" value="Compare" class="submit-btn w-75 m-2" />
                     {%endif%}
@@ -109,6 +123,42 @@ block content %}
         const myModal = new bootstrap.Modal(document.getElementById("myModal"));
         myModal.show();
     }
+    // if (messages.length > 0 || errors.length > 0) {
+    //     const myModal = new bootstrap.Modal(document.getElementById("myModal"));
+    //     myModal.show();
+    // }
+</script>
+
+<script>
+    // Toggle button text function remains the same
+    function toggleButton(button) {
+        var buttonText = button.querySelector("span").textContent;
+        
+        // Toggle the text between "Improve" and "Unimprove"
+        if (buttonText === "Improve") {
+            button.querySelector("span").textContent = "Unimprove";
+            // Save the state to localStorage
+            localStorage.setItem('buttonText', 'Unimprove');
+        } else {
+            button.querySelector("span").textContent = "Improve";
+            // Save the state to localStorage
+            localStorage.setItem('buttonText', 'Improve');
+        }
+    }
+
+    // Initialize button state function remains the same
+    function initializeButtonState() {
+        var savedText = localStorage.getItem('buttonText');
+        var button = document.querySelector("button[name='action']");
+        if (savedText && button) {
+            button.querySelector("span").textContent = savedText;
+        }
+    }
+
+    // Add event listener to ensure this runs after the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeButtonState();
+    });
 </script>
 <script src="{{url_for('static', filename='js/image.js')}}"></script>
 
