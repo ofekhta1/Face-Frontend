@@ -35,6 +35,19 @@ function getOriginalImagePath(facePath) {
   }
   return ["", 0];
 }
+async function findLandmarks(image, face_num) {
+  let data = new FormData();
+  if (face_num !== undefined && face_num != -2) {
+    data.append("images", [`aligned_${face_num}_${image}`])
+  }
+  else {
+    data.append("images", [image])
+
+  }
+  let result = await postData("detect", data);
+  let detected_image = result.images[0];
+  return detected_image;
+}
 async function findFace(image, face_num) {
   let data = new FormData();
   data.append("image", image)
@@ -65,17 +78,49 @@ function makeCanvas(src) {
     resolve(canvas);
   });
 }
-function sendJsonFormPost(endpoint,data){
+
+
+async function loadImage(canvas, src) {
+  const ctx = canvas.getContext("2d");
+
+  const img = new Image();
+  return new Promise((resolve, reject) => {
+    img.onload = function () {
+      const displaySize = { width: img.width, height: img.height };
+      faceapi.matchDimensions(canvas, displaySize);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve()
+    };
+    img.onerror = (error) => reject(error);
+    img.src = src; // Replace with your image URL
+  });
+}
+function sendJsonFormPost(endpoint, data) {
   const form = document.createElement('form');
-    form.action = `/${endpoint}`;
-    form.method = 'POST';
+  form.action = `/${endpoint}`;
+  form.method = 'POST';
 
-    const jsonData = document.createElement('input');
-    jsonData.type = 'hidden';
-    jsonData.name = 'jsonData'; // This will be the key on the server side
-    jsonData.value = JSON.stringify(data);
+  const jsonData = document.createElement('input');
+  jsonData.type = 'hidden';
+  jsonData.name = 'jsonData'; // This will be the key on the server side
+  jsonData.value = JSON.stringify(data);
 
-    form.appendChild(jsonData);
-    document.body.appendChild(form);
-    form.submit();
+  form.appendChild(jsonData);
+  document.body.appendChild(form);
+  form.submit();
+}
+function sendFormPost(endpoint, data) {
+  const form = document.createElement('form');
+  form.action = endpoint;
+  form.method = 'POST';
+  for (let key in data) {
+    const field = document.createElement('input');
+    field.type = 'hidden';
+    field.name = key; // This will be the key on the server side
+    field.value = data[key];
+    form.appendChild(field);
+
+  }
+  document.body.appendChild(form);
+  form.submit();
 }

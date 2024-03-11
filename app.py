@@ -6,12 +6,12 @@ import tempfile
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import json
-
+from modules import AppPaths,upload_from_request,extract_face_selection_from_request
+import zipfile
 
 APP_DIR = os.path.dirname(__file__)
 STATIC_FOLDER = os.path.join(APP_DIR, "static")
-# UPLOAD_FOLDER = os.path.join(APP_DIR, "pool")
-SERVER_URL = "http://127.0.0.1:5057"
+SERVER_URL = AppPaths.SERVER_URL
 # Create the folders if they don't exist
 os.makedirs(STATIC_FOLDER, exist_ok=True)
 
@@ -53,14 +53,7 @@ app.config["ROOT_FOLDER"] = APP_DIR
 app.config["SERVER_URL"] = SERVER_URL
 
 
-def saveTempFiles(temp_dir, files):
-    saved_files = {}
-    for key, file in files.items():
-        if file.filename != "":
-            file_path = os.path.join(temp_dir,file.filename)
-            file.save(file_path)
-            saved_files[key] = open(file_path, "rb")
-    return saved_files
+
 
 
 @app.route("/clustering", methods=["GET", "POST"])
@@ -82,73 +75,137 @@ def clustering():
         errors=errors,
         messages=messages,
     )
+@app.route("/check_family", methods=["GET", "POST"])
+def check_family():
+    images = []
+    messages = []
+    errors = []
 
+    faces_length = session.get("faces_length", [0, 0])
+    current_images = session.get("current_images", [])
+    combochanges = session.get("selected_faces", [-2, -2])
+    if request.method == "POST":
+        combochanges= extract_face_selection_from_request(request);
+        action = request.form.get("action")
+        if(action=="Upload"):
+            upload_from_request(request,current_images,faces_length)
+        elif(action== "improve"):
+            url = SERVER_URL + "/api/improve"
+            length=len(current_images)
+            index=request.form.get("index",type=int);
+            if index is not None and index<length:
+                if(current_images[index].startswith('enhanced_')):
+                    current_images[index]=current_images[index].replace("enhanced_","")
+                else:
+                    response = req.post(url, data={"image": current_images[index]})
+                    data = response.json()
+                    errors = errors + data["errors"]
+                    messages = messages+data["messages"]
+                    current_images[index]=data['enhanced_image']
+        elif(action=="Check_Family"):
+            url = SERVER_URL + "/api/check_family"
+            response = req.post(url, data={"images": current_images,"selected_faces":combochanges})
+            data = response.json()
+            errors = errors + data["errors"]
+            messages = messages + data["messages"]
+        elif action == "Clear":
+            length=len(current_images)
+            index=request.form.get("index",type=int);
+            if index is not None and index<length:
+                del current_images[index]
+                del faces_length[index]
+                del combochanges[index]
+                faces_length.append(0)
+                combochanges.append(0)
+
+            
+
+    session["current_images"] = current_images
+    session["selected_faces"] = combochanges
+    session["faces_length"] = faces_length
+    return render_template(
+        "check_family.html",
+        images=images,
+        current=current_images,
+        faces_length=faces_length,
+        selected_faces=combochanges,
+        errors=errors,
+        messages=messages,
+    )
+@app.route("/upload",methods=["GET","POST"])
+def upload():
+    messages = []
+    errors = []
+    if(request.method=="POST"):
+        file = request.files['zip_file']  
+        file_like_object = file.stream._file  
+        zipfile_ob = zipfile.ZipFile(file_like_object)
+        file_names = zipfile_ob.namelist()
+        # Filter names to only include the filetype that you want:
+        file_names = [file_name for file_name in file_names if file_name.endswith(".txt")]
+        files = [(zipfile_ob.open(name).read(),name) for name in file_names]
+        return str(files)
+    return render_template(
+        "upload.html",
+        errors=errors,
+        messages=messages,
+    )
+@app.route("/template_matching", methods=["GET", "POST"])
+def template_matching():
+    messages = []
+    errors = []
+    box=[]
+    current_images = session.get("current_template_images", [])
+    if request.method == "POST":
+        action = request.form.get("action")
+        if(action=="Upload"):
+            upload_from_request(request,current_images,[0,0],save_invalid=True)
+        elif(action=="Match_Template"):
+            if(len(current_images)==0):
+                errors.append("Upload a template first!")
+            else:
+                url = SERVER_URL + "/api/check_template"
+                response = req.post(url, data={"template": current_images[0]})
+                data = response.json()
+                errors = errors + data["errors"]
+                if(len(errors)==0):
+                    if(len(current_images)==1):
+                        current_images.append(data['image']);
+                    else:
+                        current_images[1]=data['image']
+                    box=data['box'];
+                messages = messages + data["messages"]
+        elif action == "Clear":
+            current_images = []
+    
+
+    session["current_template_images"] = current_images
+    return render_template(
+        "template_matching.html",
+        box=box,
+        current=current_images,
+        errors=errors,
+        messages=messages,
+    )
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     images = []
     messages = []
     errors = []
-    options=[]
+    action = request.form.get("action")
 
     uploaded_images = session.get("uploaded_images", [])
     faces_length = session.get("faces_length", [0, 0])
     current_images = session.get("current_images", [])
     #current_detect_images="detected_"+current_images
     combochanges = session.get("selected_faces", [-2, -2])
-    checked_images1 = request.form.get('image_selection1')
-    checked_images2 = request.form.get('image_selection2')
-    if(checked_images1=="image1"):
-        checked_images1=True
-    else:
-        checked_images1=False
-
-
-    if(checked_images2=="image2"):
-        checked_images2=True
-    else:
-        checked_images2=False
-
 
     if request.method == "POST":
-        face_num_1 = request.form.get("face_num1")
-        face_num_2 = request.form.get("face_num2")
-        face_num_1 = -2 if request.form.get("face_num1") == "" else int(face_num_1)
-        face_num_2 = -2 if request.form.get("face_num2") == "" else int(face_num_2)
-        combochanges = [face_num_1, face_num_2]
-        action = request.form.get("action")
+        combochanges= extract_face_selection_from_request(request);
         if action == "Upload":
-            with tempfile.TemporaryDirectory() as temp_dir:
-                saved_files = saveTempFiles(temp_dir, request.files)
-                if len(saved_files) > 0:
-                    response = req.post(SERVER_URL + "/api/upload", files=saved_files)
-                    data = response.json()
-                    saved_files
-                    errors = errors + data["errors"]
-                    if len(data["images"]) > 0:
-                        max_size = 2
-                        initial = len(current_images) - 1
-                        uploaded = [
-                            x.filename
-                            for x in request.files.values()
-                            if x.filename != ""
-                        ]
-                        for i in range(len(uploaded)):
-                            current_index = (initial + 1 + i) % max_size
-                            if current_index == initial + 1:
-                                current_images.append(data["images"][i])
-                            else:
-                                current_images[current_index] = data["images"][i]
-                            faces_length[current_index] = data["faces_length"][i]
-
-                    uploaded_images = uploaded_images + data["images"]
-                    for saved in saved_files.values():
-                        saved.close();
-                else:
-                    errors.append(
-                        "Saving Images failed,make sure you uploaded 2 valid images"
-                    )
-
+            temp_err=upload_from_request(request,current_images,faces_length)
+            errors=errors+temp_err
         elif action in ["Detect", "Align"]:
             if action == "Align":
                 url = SERVER_URL + "/api/align"
@@ -160,39 +217,25 @@ def index():
                 data = response.json()
                 uploaded_images = uploaded_images + data["images"]
                 errors = errors + data["errors"]
-                # current_images=data['images']
+                current_images=data['images']
                 messages = messages + data["messages"]
-                # faces_length = data["faces_length"]
-                # detected_filename = "detected_" + uploaded_images[0]
-                # detected_path = os.path.join(UPLOAD_FOLDER, uploaded_images[1])
-                # os.remove(detected_path)
+             
                 for i in range(len(data['faces_length'])):
                     faces_length[i]=data['faces_length'][i]
             else:
                 errors.append("No images uploaded!")
         elif action == "Clear":
             length=len(current_images)
-            # url = SERVER_URL + "/api/clear"
-            if((checked_images1==True) and(len(current_images))>=1):
-                 del current_images[0]
-                 length=length-1
-            if((checked_images2==True) and(len(current_images))>=1):
-                 if(length==2):
-                   del current_images[1]
-                 else:
-                    del current_images[0]
-              
+            index=request.form.get("index",type=int);
+            if index is not None and index<length:
+                del current_images[index]
+                del faces_length[index]
+                del combochanges[index]
+                faces_length.append(0)
+                combochanges.append(0)
 
-            uploaded_images = []
-            #current_images = []
-            faces_length = [0, 0]
+                uploaded_images = []
             
-            # response = req.post(
-            #     url, data={"images": current_images, "selected_faces": combochanges, "checked_images1": checked_images1, "checked_images2": checked_images2}
-            # )
-            # data = response.json()
-            # errors = errors + data["errors"]
-            # messages = messages + data["messages"]
 
         elif action == "Compare":
             url = SERVER_URL + "/api/compare"
@@ -226,22 +269,19 @@ def index():
         
         elif action == "improve":
             url = SERVER_URL + "/api/improve"
-            response = req.post(url, data={"images": current_images, "checked_images1": checked_images1, "checked_images2": checked_images2})
-            data = response.json()
-            errors = errors + data["errors"]
-            messages = messages+data["messages"]
-            options=options+data["options"]
-            #checked_images=checked_images+data["checked_images"]
-            current_images.clear()
-            if len(data) > 1:
-                current_images=data["enhanced_images"];
+            length=len(current_images)
+            index=request.form.get("index",type=int);
+            if index is not None and index<length:
+                if(current_images[index].startswith('enhanced_')):
+                    current_images[index]=current_images[index].replace("enhanced_","")
+                else:
+                    response = req.post(url, data={"image": current_images[index]})
+                    data = response.json()
+                    errors = errors + data["errors"]
+                    messages = messages+data["messages"]
+                    current_images[index]=data['enhanced_image']
 
-        elif action == "Check_family":
-            url = SERVER_URL + "/api/check_family"
-            response = req.post(url, data={"images": current_images})
-            data = response.json()
-            errors = errors + data["errors"]
-            messages = messages + data["messages"]
+ 
 
         
         session["current_images"] = current_images
@@ -251,7 +291,6 @@ def index():
 
     images = uploaded_images
     
-    action = request.form.get("action")
     if action != "Detect":
      return render_template(
         "image.html",
@@ -261,7 +300,6 @@ def index():
         selected_faces=combochanges,
         errors=errors,
         messages=messages,
-        options=options
     )
     else:
        return render_template(
@@ -272,7 +310,6 @@ def index():
     selected_faces=combochanges,
     errors=errors,
     messages=messages,
-    options=options
 )
         
 

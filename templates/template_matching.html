@@ -1,0 +1,77 @@
+{% extends "base.html" %} {% block title %} Find By Template {% endblock %} {%
+block content %}
+
+<div class="content">
+    <h1 class="text-light m-4 text-center -select-none">Template Matching</h1>
+    <div class="main-container mb-5">
+        <form action="/template_matching" method="POST" enctype="multipart/form-data" class="w-100">
+            <div class="d-flex align-items-center justify-content-center">
+                {% for i in range(2) %}
+                <div class="d-flex flex-column col-4">
+                    <!-- Drag area  -->
+
+                    <div id="dragarea{{i+1}}" class="drag-area position-relative d-flex align-items-center 
+                            justify-content-center flex-column rounded-top-0 p-5
+                            {{'active' if current|length>0 else 'inactive'}}">
+                        {%if current[i]%}
+                        <div
+                            class="w-100 bg-dark text-light text-truncate rounded-top-1 position-absolute top-0 z-3 p-1 text-center fw-bold">
+                            {{current[i]}}</div>
+                        {%endif%}
+                        <canvas class="img-fluid d-none position-absolute rounded-top-1 z-2 h-100 w-100" alt="">
+
+                        </canvas>
+                        <input type="file" name="image{{i+1}}" accept="image/*" hidden />
+                        <!-- Dont render the second drag&drop if only 1 image uploaded -->
+                        {%if(current|length==0 and i==0)%}
+                        <div class="d-flex align-items-center justify-content-center 
+                            flex-column" id="dragarea{{i+1}}-content">
+                            <div class=" text-light -select-none" style="font-size: 100px;">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <header class="text-light -select-none text-center">
+                                Drag & Drop to Upload File
+                            </header>
+                            <span class="text-light -select-none">OR</span>
+                            <button type="button" class="browse-btn btn  btn-light px-4 py-2">
+                                Browse File
+                            </button>
+                        </div>
+                        {%endif%}
+                    </div>
+
+                    <div>
+                        <div class="w-100">
+                            <button id="findBtn{{i+1}}"
+                                class="btn btn-success -select-none pe-none w-100 rounded-bottom-2 rounded-top-0"
+                                type="button">{{'Template' if i==0 else 'Result'}}</button>
+                        </div>
+                    </div>
+                </div>
+
+                {% if i == 0 %}
+                <!-- Buttons -->
+                <div class=" d-flex col-2 flex-column align-items-center">
+                    <!-- <input type="submit" name="action" value="Upload" class="submit-btn rounded-3 w-75 m-2" /> -->
+                    <input type="submit" name="action" value="Match_Template" class="submit-btn w-75 m-2" />
+                    <input type="submit" name="action" value="Clear" class="submit-btn w-75 m-2" />
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const current_images = JSON.parse('{{ current | tojson | safe}}');
+    if (messages.length > 0 || errors.length > 0) {
+        const myModal = new bootstrap.Modal(document.getElementById("myModal"));
+        myModal.show();
+    }
+    const detection = JSON.parse('{{ box | tojson | safe}}');
+
+ </script>
+<script src="{{url_for('static', filename='js/dragdrop_minimal.js')}}"></script>
+
+{% endblock %}

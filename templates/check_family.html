@@ -1,0 +1,107 @@
+{% extends "base.html" %} {% block title %} Check If Family Related {% endblock %} {%
+    block content %}
+    
+    <div class="content">
+        <div class="main-container mb-5">
+            <form action="/check_family" method="POST" enctype="multipart/form-data" class="w-100">
+                <div class="d-flex align-items-center justify-content-center">
+                    {% for i in range(2) %}
+                    <div class="d-flex flex-column col-4">
+                        <!-- Drag area  -->
+    
+    
+                        <div id="dragarea{{i+1}}" class="drag-area position-relative d-flex align-items-center 
+                            justify-content-center flex-column rounded-top-0 p-5
+                            {{'active' if current|length>0 else 'inactive'}}">
+                            <!-- Checkbox positioned at the top left of the drag area -->
+                            {%if current[i]%}
+                            <div
+                                class="w-100 bg-dark rounded-top-1 position-absolute top-0 z-3 p-1 text-center">
+                                <button id="improveBtn{{i+1}}" type="button" class="fw-bold text-light py-0 position-absolute top-0 start-0 btn btn-success h-100 rounded-0">
+                                    {% if current[i].startswith('enhanced_')%}
+                                    Unimprove
+                                    {%else%}
+                                    Improve
+                                    {%endif%}
+                                </button>
+                                <span class="fw-bold text-truncate text-light fs-6">{{current[i]}}</span>
+                                <button id="clearBtn{{i+1}}" type="button" class="fw-bold text-light py-0 position-absolute top-0 end-0 btn btn-danger h-100 rounded-0">X</button>
+                            </div>
+                            {%endif%}
+                            {%if i==0 and current|length==0%}
+                            <video id="video" class="position-absolute w-100 d-none h-100 object-fit-fill" autoplay></video>
+                            {%endif%}
+                            <canvas class="img-fluid d-none position-absolute rounded-top-1 z-2 h-100 w-100" alt="">
+    
+                            </canvas>
+                            <input type="file" name="image{{i+1}}" accept="image/*" hidden />
+                            <input type="number" name="face_num{{i+1}}" accept="image/*" value="-2"
+                                id="face_num_input{{i+1}}" hidden />
+                            <!-- Dont render the second drag&drop if only 1 image uploaded -->
+                            {%if(current|length==0) or (current|length==1 and 1==i)%}
+                            <div class="d-flex align-items-center justify-content-center 
+                            flex-column" id="dragarea{{i+1}}-content">
+                                <div class=" text-light user-select-none" style="font-size: 100px;">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <header class="text-light user-select-none text-center">
+                                    Drag & Drop to Upload File
+                                </header>
+                                <span class="text-light user-select-none">OR</span>
+                                <button type="button" class="browse-btn btn  btn-light px-4 py-2">
+                                    Browse File
+                                </button>
+                            </div>
+                            {%endif%}
+                        </div>
+                        <div>
+                            <div class="form-floating">
+                                <select id="combo-box{{i+1}}" class="form-select rounded-0 ">
+                                    <option value="-2">All</option>
+                                    {% for j in range(faces_length[i]) %}
+                                    <option value="{{ j }}">Face {{ j + 1 }}</option>
+                                    {% endfor %}
+                                </select>
+                                <label class="" for="combo-box{{i+1}}">Select a Face:</label>
+                            </div>
+                            <div class="w-100">
+                                <button id="findBtn{{i+1}}" class="btn btn-success w-100 rounded-0"
+                                    type="button">show faces</button>
+                                    <button id="landmarksBtn{{i+1}}" class="btn btn-warning  w-100 rounded-bottom-2 rounded-top-0"
+                                    type="button">show landmarks</button>
+                            </div>
+                        </div>
+                    </div>
+    
+    
+                    {% if i == 0 %}
+                    <!-- Buttons -->
+                    <div class=" d-flex col-2 flex-column align-items-center">
+                        <!-- <input type="submit" name="action" value="Upload" class="submit-btn rounded-3 w-75 m-2" /> -->
+                        {% if current | length == 0%}
+                        <button id="startVideoBtn" class="submit-btn rounded-3 w-75 m-2" type="button">Start Video</button>
+                        {%endif%} 
+                        {% if current | length == 2%}
+                        <input type="submit" name="action" value="Check_Family" class="submit-btn w-75 m-2" />
+                        {%endif%}
+                        <input type="submit" name="action" value="Clear" class="submit-btn w-75 m-2" />
+    
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        const current_images = JSON.parse('{{ current | tojson | safe}}');
+        const selected_faces = JSON.parse('{{ selected_faces | tojson | safe}}');
+        if (messages.length > 0 || errors.length > 0) {
+            const myModal = new bootstrap.Modal(document.getElementById("myModal"));
+            myModal.show();
+        }
+    </script>
+    <script src="{{url_for('static', filename='js/image.js')}}"></script>
+    
+    {% endblock %}

@@ -1,19 +1,6 @@
 {% extends "base.html" %} {% block title %} Image Processing {% endblock %} {%
 block content %}
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#" id="showFormButton">Download Pictures from Web</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div style="display: none;" id="downloadForm">
-        <form class=" my-2 my-lg-0 d-flex"  method="POST" action="/download">
-            <input class="form-control mr-sm-2 mx-1" type="url" name="website_url" id="website_url_input" placeholder="Enter website URL" required>
-            <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Download</button>
-        </form>
-    </div>
-</nav>
-
 <div class="content">
     <h1 class="text-light m-4 text-center user-select-none">Upload and Process Images</h1>
     <div class="main-container mb-5">
@@ -24,23 +11,25 @@ block content %}
                 {% for i in range(2) %}
                 <div class="d-flex flex-column col-4">
                     <!-- Drag area  -->
-                    
+
 
                     <div id="dragarea{{i+1}}" class="drag-area position-relative d-flex align-items-center 
                         justify-content-center flex-column rounded-top-0 p-5
                         {{'active' if current|length>0 else 'inactive'}}">
-                        <div class="drag-area">
-                            <!-- Checkbox positioned at the top left of the drag area -->
-                            <div class="checkbox-top-left">
-                                <input class="form-check-input" type="checkbox" name="image_selection{{i+1}}" value="image{{i+1}}" id="imageSelection{{i+1}}" checked>
-                                <label class="form-check-label" for="imageSelection{{i+1}}">Choose Image {{i+1}}</label>
-                            </div>
-    
-                        </div>
+                        <!-- Checkbox positioned at the top left of the drag area -->
                         {%if current[i]%}
                         <div
-                            class="w-100 bg-dark text-light text-truncate rounded-top-1 position-absolute top-0 z-3 p-1 text-center fw-bold">
-                            {{current[i]}}</div>
+                            class="w-100 bg-dark rounded-top-1 position-absolute top-0 z-3 p-1 text-center">
+                            <button id="improveBtn{{i+1}}" type="button" class="fw-bold text-light py-0 position-absolute top-0 start-0 btn btn-success h-100 rounded-0">
+                                {% if current[i].startswith('enhanced_')%}
+                                Unimprove
+                                {%else%}
+                                Improve
+                                {%endif%}
+                            </button>
+                            <span class="fw-bold text-truncate text-light fs-6">{{current[i]}}</span>
+                            <button id="clearBtn{{i+1}}" type="button" class="fw-bold text-light py-0 position-absolute top-0 end-0 btn btn-danger h-100 rounded-0">X</button>
+                        </div>
                         {%endif%}
                         {%if i==0 and current|length==0%}
                         <video id="video" class="position-absolute w-100 d-none h-100 object-fit-fill" autoplay></video>
@@ -79,8 +68,10 @@ block content %}
                             <label class="" for="combo-box{{i+1}}">Select a Face:</label>
                         </div>
                         <div class="w-100">
-                            <button id="findBtn{{i+1}}" class="btn btn-success w-100 rounded-bottom-2 rounded-top-0"
+                            <button id="findBtn{{i+1}}" class="btn btn-success w-100 rounded-0"
                                 type="button">show faces</button>
+                                <button id="landmarksBtn{{i+1}}" class="btn btn-warning  w-100 rounded-bottom-2 rounded-top-0"
+                                type="button">show landmarks</button>
                         </div>
                     </div>
                 </div>
@@ -91,20 +82,12 @@ block content %}
                     <!-- <input type="submit" name="action" value="Upload" class="submit-btn rounded-3 w-75 m-2" /> -->
                     {% if current | length == 0%}
                     <button id="startVideoBtn" class="submit-btn rounded-3 w-75 m-2" type="button">Start Video</button>
-                    {%endif%} 
+                    {%endif%}
                     <input type="submit" name="action" value="Detect" class="submit-btn w-75 m-2" />
                     <input type="submit" name="action" value="Check" class="submit-btn w-75 m-2" />
-                    <input type="submit" name="action" value="Check_family" class="submit-btn w-75 m-2" />
-                    <button type="submit" name="action" value="improve" class="submit-btn w-75 m-2" onclick="toggleButton(this);">
-                        <span>Improve</span>
-                    </button>
-                    <!-- <input type="submit" name="action" value="improve" class="submit-btn w-75 m-2" /> -->
-                    <!-- <input type="checkbox" name="image_selection1" value="image1">
-                    <input type="checkbox" name="image_selection2" value="image2"> -->
                     {% if current | length == 2%}
                     <input type="submit" name="action" value="Compare" class="submit-btn w-75 m-2" />
                     {%endif%}
-                    <input type="submit" name="action" value="Clear" class="submit-btn w-75 m-2" />
 
                 </div>
                 {% endif %}
@@ -133,7 +116,7 @@ block content %}
     // Toggle button text function remains the same
     function toggleButton(button) {
         var buttonText = button.querySelector("span").textContent;
-        
+
         // Toggle the text between "Improve" and "Unimprove"
         if (buttonText === "Improve") {
             button.querySelector("span").textContent = "Unimprove";
@@ -156,7 +139,7 @@ block content %}
     }
 
     // Add event listener to ensure this runs after the DOM is fully loaded
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         initializeButtonState();
     });
 </script>

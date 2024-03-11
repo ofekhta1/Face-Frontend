@@ -1,24 +1,10 @@
 "use strict";
 
-$('#showFormButton').on('click', function() {
+$('#showFormButton').on('click', function () {
   $('#downloadForm').toggle();
 });
 
-async function loadImage(canvas, src) {
-  const ctx = canvas.getContext("2d");
 
-  const img = new Image();
-  return new Promise((resolve,reject)=>{
-  img.onload = function () {
-    const displaySize = { width: img.width, height: img.height };
-    faceapi.matchDimensions(canvas, displaySize);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    resolve()
-  };
-  img.onerror=(error)=> reject(error);
-  img.src = src; // Replace with your image URL
-});
-}
 $("#startVideoBtn").on("click", function () {
   const video = $("#video")[0]; // Get the video element using jQuery
   if (current_images.length === 0) {
@@ -95,6 +81,9 @@ function getImgParams($comboBox, areaNumber) {
   const fileName = current_images[areaNumber - 1];
   return { faceNum, fileName };
 }
+function getFaceNums(){
+  $("")
+}
 async function getFacePath($comboBox, areaNumber) {
   let $params = getImgParams($comboBox, areaNumber);
   let path = "";
@@ -115,22 +104,63 @@ function setupDropArea($dropArea, areaNumber) {
   const $input = $dropArea.find("input");
   const $comboBox = $(`#combo-box${areaNumber}`);
   const $findBtn = $(`#findBtn${areaNumber}`);
+  const $clearBtn = $(`#clearBtn${areaNumber}`);
+  const $improveBtn = $(`#improveBtn${areaNumber}`);
+  const $landmarksBtn = $(`#landmarksBtn${areaNumber}`);
+
+
+  $clearBtn.on("click", function () {
+    let endpoint = window.location.pathname;
+    let data = {
+      "action": "Clear",
+      "index": (areaNumber - 1),
+    }
+    for(let i=1;i<=2;i++){
+      let face_num = getImgParams($(`#combo-box${i}`), i).faceNum;
+      data[`face_num${i}`]=face_num
+    }
+    
+  
+    sendFormPost(endpoint, data)  });
+  $improveBtn.on("click", function () {
+    let endpoint = window.location.pathname;
+    let data = {
+      "action": "improve",
+      "index": areaNumber - 1
+    }
+    for(let i=1;i<=2;i++){
+      let face_num = getImgParams($(`#combo-box${i}`), i).faceNum;
+      data[`face_num${i}`]=face_num
+    }
+    
+    sendFormPost(endpoint, data)
+  });
   $button.on("click", function () {
     $input.click();
+
   });
-  $findBtn.on("click",async function(){
+  $landmarksBtn.on("click", async function () {
     let id = $(this).attr("id");
     let number = parseInt(id.slice(-1)); // Get the last character
-    let path = SERVER_URL + `/pool/${current_images[number-1]}`;
-    await loadImage($img[0],path)
-    let face_num =  getImgParams($comboBox, number).faceNum;
-    let faces=await findFace(current_images[number-1],face_num)
-    for(let i=0;i<faces.length;i++){
-      let face=faces[i];
-      let box={x:face[0], y:face[1],width:face[2]-face[0],height:face[3]-face[1]}
+    let face_num = getImgParams($comboBox, number).faceNum;
+    let landmarks= await findLandmarks(current_images[number - 1], face_num)
+    let path = SERVER_URL + `/static/${landmarks}`;
+    await loadImage($img[0], path)
+
+  })
+  $findBtn.on("click", async function () {
+    let id = $(this).attr("id");
+    let number = parseInt(id.slice(-1)); // Get the last character
+    let path = SERVER_URL + `/pool/${current_images[number - 1]}`;
+    await loadImage($img[0], path)
+    let face_num = getImgParams($comboBox, number).faceNum;
+    let faces = await findFace(current_images[number - 1], face_num)
+    for (let i = 0; i < faces.length; i++) {
+      let face = faces[i];
+      let box = { x: face[0], y: face[1], width: face[2] - face[0], height: face[3] - face[1] }
       let num = (face_num === -2) ? i : face_num;
       let drawOptions = {
-        label: `face ${num+1}`,
+        label: `face ${num + 1}`,
         lineWidth: 5
       }
       let drawBox = new faceapi.draw.DrawBox(box, drawOptions)
@@ -181,7 +211,7 @@ function setupDropArea($dropArea, areaNumber) {
     $("button").prop("disabled", true);
     $("input[type='button'], input[type='submit']").prop("disabled", true);
   });
-  
+
   $comboBox.on("change", async function () {
     let result = await getFacePath($(this), areaNumber);
     if (result.exists) {
@@ -196,7 +226,7 @@ function setupDropArea($dropArea, areaNumber) {
     }
   });
   return { $img, $content, $dragText, $button, $input, $comboBox };
-  
+
 }
 
 
