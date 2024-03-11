@@ -291,8 +291,7 @@ def index():
 
     images = uploaded_images
     
-    if action != "Detect":
-     return render_template(
+    return render_template(
         "image.html",
         images=images,
         current=current_images,
@@ -301,16 +300,6 @@ def index():
         errors=errors,
         messages=messages,
     )
-    else:
-       return render_template(
-    "image.html",
-    images=images,  
-    current=images[1:],  
-    faces_length=faces_length,
-    selected_faces=combochanges,
-    errors=errors,
-    messages=messages,
-)
         
 
 
