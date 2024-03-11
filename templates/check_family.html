@@ -2,6 +2,7 @@
     block content %}
     
     <div class="content">
+    <h1 class="text-light m-4 text-center user-select-none">Check Family Relations</h1>
         <div class="main-container mb-5">
             <form action="/check_family" method="POST" enctype="multipart/form-data" class="w-100">
                 <div class="d-flex align-items-center justify-content-center">
@@ -84,7 +85,6 @@
                         {% if current | length == 2%}
                         <input type="submit" name="action" value="Check_Family" class="submit-btn w-75 m-2" />
                         {%endif%}
-                        <input type="submit" name="action" value="Clear" class="submit-btn w-75 m-2" />
     
                     </div>
                     {% endif %}

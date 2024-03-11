@@ -217,7 +217,7 @@ def index():
                 data = response.json()
                 uploaded_images = uploaded_images + data["images"]
                 errors = errors + data["errors"]
-                current_images=data['images']
+                # current_images=data['images']
                 messages = messages + data["messages"]
              
                 for i in range(len(data['faces_length'])):
