@@ -68,10 +68,12 @@ block content %}
                             <label class="" for="combo-box{{i+1}}">Select a Face:</label>
                         </div>
                         <div class="w-100">
+                            {%if current[i]%}
                             <button id="findBtn{{i+1}}" class="btn btn-success w-100 rounded-0"
                                 type="button">show faces</button>
                                 <button id="landmarksBtn{{i+1}}" class="btn btn-warning  w-100 rounded-bottom-2 rounded-top-0"
                                 type="button">show landmarks</button>
+                                {%endif%}
                         </div>
                     </div>
                 </div>
@@ -105,42 +107,6 @@ block content %}
         const myModal = new bootstrap.Modal(document.getElementById("myModal"));
         myModal.show();
     }
-    // if (messages.length > 0 || errors.length > 0) {
-    //     const myModal = new bootstrap.Modal(document.getElementById("myModal"));
-    //     myModal.show();
-    // }
-</script>
-
-<script>
-    // Toggle button text function remains the same
-    function toggleButton(button) {
-        var buttonText = button.querySelector("span").textContent;
-
-        // Toggle the text between "Improve" and "Unimprove"
-        if (buttonText === "Improve") {
-            button.querySelector("span").textContent = "Unimprove";
-            // Save the state to localStorage
-            localStorage.setItem('buttonText', 'Unimprove');
-        } else {
-            button.querySelector("span").textContent = "Improve";
-            // Save the state to localStorage
-            localStorage.setItem('buttonText', 'Improve');
-        }
-    }
-
-    // Initialize button state function remains the same
-    function initializeButtonState() {
-        var savedText = localStorage.getItem('buttonText');
-        var button = document.querySelector("button[name='action']");
-        if (savedText && button) {
-            button.querySelector("span").textContent = savedText;
-        }
-    }
-
-    // Add event listener to ensure this runs after the DOM is fully loaded
-    document.addEventListener('DOMContentLoaded', function () {
-        initializeButtonState();
-    });
 </script>
 <script src="{{url_for('static', filename='js/image.js')}}"></script>
 

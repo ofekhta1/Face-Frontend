@@ -2,12 +2,8 @@ from flask import Flask, render_template, request, session, url_for, redirect, j
 import os
 import requests as req
 from flask import send_from_directory
-import tempfile
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin
 import json
-from modules import AppPaths,upload_from_request,extract_face_selection_from_request
-import zipfile
+from modules import AppPaths,upload_from_request,extract_face_selection_from_request,upload_from_zip,upload_from_url
 
 APP_DIR = os.path.dirname(__file__)
 STATIC_FOLDER = os.path.join(APP_DIR, "static")
@@ -35,15 +31,6 @@ def create_directory(directory):
 
 
 # Function to download and save an image
-def save_image(url, directory):
-    response = req.get(url, stream=True)
-    if response.status_code == 200:
-        # Extract the filename from the URL
-        filename = os.path.join(directory, os.path.basename(url))
-        with open(filename, "w+b") as file:
-            for chunk in response.iter_content(1024):
-                file.write(chunk)
-            return filename;
 
 
 app.secret_key = "your_secret_key"
@@ -137,14 +124,15 @@ def upload():
     messages = []
     errors = []
     if(request.method=="POST"):
-        file = request.files['zip_file']  
-        file_like_object = file.stream._file  
-        zipfile_ob = zipfile.ZipFile(file_like_object)
-        file_names = zipfile_ob.namelist()
-        # Filter names to only include the filetype that you want:
-        file_names = [file_name for file_name in file_names if file_name.endswith(".txt")]
-        files = [(zipfile_ob.open(name).read(),name) for name in file_names]
-        return str(files)
+        method=request.form.get("type","url");
+        if(method=="url"):
+            messages,errors=upload_from_url(website_url=request.form.get('website_url'))
+        elif(method=="zipfile"):
+            file = request.files['zip_file']  
+            file_like_object = file.stream._file  
+            messages,errors=upload_from_zip(file_like_object)
+
+        
     return render_template(
         "upload.html",
         errors=errors,
@@ -300,37 +288,6 @@ def index():
         errors=errors,
         messages=messages,
     )
-        
-
-
-@app.route("/download", methods=["POST"])
-def download():
-    errors=[]
-    website_url = request.form.get("website_url")
-    with tempfile.TemporaryDirectory() as temp_dir:
-        downloaded_images={};
-        response = req.get(website_url)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, "html.parser")
-            img_tags = soup.find_all("img")
-            i=0;
-            for img in img_tags:
-                i=i+1;
-                img_url = img.get("src")
-                img_url = urljoin(website_url, img_url)
-                fileName=save_image(img_url, temp_dir)
-                downloaded_images[f"image{i}"] =  open(fileName,'rb')
-            print("Images downloaded and saved successfully.")
-            if len(downloaded_images) > 0:
-                response = req.post(SERVER_URL + "/api/upload", files=downloaded_images)
-                data = response.json()
-                errors = errors + data["errors"]
-    
-        else:
-            print(f"Failed to fetch the website. Status code: {response.status_code}")
-
-    return redirect(url_for("index"))
-
 
 
 if __name__ == "__main__":
