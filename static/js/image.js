@@ -91,7 +91,7 @@ async function getFacePath($comboBox, areaNumber) {
   if ($params.faceNum == -2) {
     path = SERVER_URL + `/pool/${$params.fileName}`;
   } else {
-    path = SERVER_URL + `/static/aligned_${face_num}_${$params.fileName}`;
+    path = SERVER_URL + `/static/buffalo_l/aligned_${face_num}_${$params.fileName}`;
   }
   const exists = await checkFileExists(path);
   return { path, exists, face_num };
@@ -144,7 +144,7 @@ function setupDropArea($dropArea, areaNumber) {
     let number = parseInt(id.slice(-1)); // Get the last character
     let face_num = getImgParams($comboBox, number).faceNum;
     let landmarks= await findLandmarks(current_images[number - 1], face_num)
-    let path = SERVER_URL + `/static/${landmarks}`;
+    let path = SERVER_URL + `/static/buffalo_l/${landmarks}`;
     await loadImage($img[0], path)
 
   })
@@ -264,7 +264,7 @@ $(document).ready(function () {
       } else {
         path =
           SERVER_URL +
-          `/static/aligned_${selected_faces[index]}_${current_images[index]}`;
+          `/static/buffalo_l/aligned_${selected_faces[index]}_${current_images[index]}`;
         $comboBoxes[index].val(selected_faces[index]);
         $(`#face_num_input${index + 1}`).val(selected_faces[index]);
       }
