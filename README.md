@@ -59,7 +59,7 @@ pip install -r requirements.txt
 # On Windows, use: set FLASK_ENV=development
 # On macOS and Linux, use: export FLASK_ENV=development
 
-flask run
+python3 app.py
 ```
 
 Visit `http://localhost:5000` in your web browser to access the application.

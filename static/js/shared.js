@@ -24,13 +24,13 @@ async function getData(endpoint) {
   }
 }
 function getOriginalImagePath(facePath) {
-  let pattern = /aligned_(\d+)_/;  //  regex pattern to capture digits
+  let pattern = /\/static\/[a-zA-Z_]+\/(aligned_(\d+)_)?/;  //  
   let match = pattern.exec(facePath);  // Executing the regex pattern on the string
 
   if (match) {
-    let face_num = match[1]
-    let imagePath = facePath.replace(pattern, '');
-    imagePath = imagePath.replace("/static/", "/pool/")
+    let face_num = match[2]
+    let imagePath = facePath.replace(pattern, '/pool/');
+    // imagePath = imagePath.replace("/static/", "/pool/")
     return [imagePath, face_num];
   }
   return ["", 0];
@@ -95,19 +95,23 @@ async function loadImage(canvas, src) {
     img.src = src; // Replace with your image URL
   });
 }
-function sendJsonFormPost(endpoint, data) {
+function sendJsonFormPost(endpoint,data){
   const form = document.createElement('form');
-  form.action = `/${endpoint}`;
-  form.method = 'POST';
+    form.action = `/${endpoint}`;
+    form.method = 'POST';
 
-  const jsonData = document.createElement('input');
-  jsonData.type = 'hidden';
-  jsonData.name = 'jsonData'; // This will be the key on the server side
-  jsonData.value = JSON.stringify(data);
-
-  form.appendChild(jsonData);
-  document.body.appendChild(form);
-  form.submit();
+    const jsonData = document.createElement('input');
+    jsonData.type = 'hidden';
+    jsonData.name = 'jsonData'; // This will be the key on the server side
+    jsonData.value = JSON.stringify(data);
+    const modelData = document.createElement('input');
+    modelData.type = 'hidden';
+    modelData.name = 'model_name'; // This will be the key on the server side
+    modelData.value = model_name;
+    form.appendChild(modelData)
+    form.appendChild(jsonData);
+    document.body.appendChild(form);
+    form.submit();
 }
 function sendFormPost(endpoint, data) {
   const form = document.createElement('form');
