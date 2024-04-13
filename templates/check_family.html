@@ -65,11 +65,14 @@
                                 </select>
                                 <label class="" for="combo-box{{i+1}}">Select a Face:</label>
                             </div>
+                            
                             <div class="w-100">
+                                {%if current[i]%}
                                 <button id="findBtn{{i+1}}" class="btn btn-success w-100 rounded-0"
                                     type="button">show faces</button>
                                     <button id="landmarksBtn{{i+1}}" class="btn btn-warning  w-100 rounded-bottom-2 rounded-top-0"
                                     type="button">show landmarks</button>
+                                {%endif%}
                             </div>
                         </div>
                     </div>

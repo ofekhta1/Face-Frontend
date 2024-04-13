@@ -40,8 +40,64 @@ app.config["ROOT_FOLDER"] = APP_DIR
 app.config["SERVER_URL"] = SERVER_URL
 
 
+@app.route("/search",methods=["GET","POST"])
+def search():
+    messages = []
+    errors = []
 
+    faces_length = session.get("faces_length",[0,0])
+    current_images = session.get("current_images", [None,None])
+    images=[]
+    combochanges = session.get("selected_faces", [-2, -2])
+    if request.method == "POST":
+        combochanges= extract_face_selection_from_request(request);
+        action = request.form.get("action")
+        if(action=="Upload"):
+            upload_from_request(request,current_images,faces_length)
+        elif(action== "improve"):
+            url = SERVER_URL + "/api/improve"
+            length=len(current_images)
+            index=request.form.get("index",type=int);
+            if index is not None and index<length:
+                if(current_images[index].startswith('enhanced_')):
+                    current_images[index]=current_images[index].replace("enhanced_","")
+                else:
+                    response = req.post(url, data={"image": current_images[index]})
+                    data = response.json()
+                    errors = errors + data["errors"]
+                    messages = messages+data["messages"]
+                    current_images[index]=data['enhanced_image']
+        elif(action=="Search"):
+            k=request.form.get("k",3);
+            url = SERVER_URL + "/api/check_many"
+            response = req.post(url, data={"image": current_images[0],"selected_face":combochanges[0],"number_of_images":k})
+            data = response.json()
+            errors = errors + data["errors"]
+            images = images + data["images"]
+        elif action == "Clear":
+            length=len(current_images)
+            index=request.form.get("index",type=int);
+            if index is not None and index<length:
+                del current_images[index]
+                del faces_length[index]
+                del combochanges[index]
+                faces_length.append(0)
+                combochanges.append(0)
 
+            
+
+    session["current_images"] = current_images
+    session["selected_faces"] = combochanges
+    session["faces_length"] = faces_length
+    return render_template(
+        "search.html",
+        images=images,
+        current=current_images[0] if len(current_images)>0 else None,
+        faces_length=faces_length[0],
+        selected_face=combochanges[0],
+        errors=errors,
+        messages=messages,
+    )
 
 @app.route("/clustering", methods=["GET", "POST"])
 def clustering():

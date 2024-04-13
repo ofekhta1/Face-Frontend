@@ -1,0 +1,111 @@
+{% extends "base.html" %} {% block title %} Search Similar Images {% endblock %} {%
+block content %}
+
+<div class="content">
+    <h1 class="text-light m-4 text-center user-select-none">Find K similar images</h1>
+
+    <div class="main-container mb-5">
+
+
+        <form action="/search" method="POST" enctype="multipart/form-data" class="w-100">
+            <div class=" d-flex col-2 mx-auto mb-3 justify-content-center align-items-center">
+                <div class="form-floating m-2">
+                    <input type="number" id="k_input" min="1"  class="form-control" name="k" value="1" />
+                    <label for="k_input">number of images</label>
+                  </div>
+                <input type="submit" name="action" value="Search" class="submit-btn rounded-3 w-75 " />
+            </div>
+            <div class="d-flex align-items-center justify-content-center">
+                <div class="d-flex flex-column col-4">
+                    <!-- Drag area  -->
+                    <div id="dragarea1" class="drag-area position-relative d-flex align-items-center 
+                        justify-content-center flex-column rounded-top-0 p-5
+                        {{'active' if current else 'inactive'}}">
+                        <!-- Checkbox positioned at the top left of the drag area -->
+                        {%if current%}
+                        <div
+                            class="w-100 bg-dark rounded-top-1 position-absolute top-0 z-3 p-1 text-center">
+                            <button id="improveBtn1" type="button" class="fw-bold text-light py-0 position-absolute top-0 start-0 btn btn-success h-100 rounded-0">
+                                {% if current.startswith('enhanced_')%}
+                                Unimprove
+                                {%else%}
+                                Improve
+                                {%endif%}
+                            </button>
+                            <span class="fw-bold text-truncate text-light fs-6">{{current}}</span>
+                            <button id="clearBtn1" type="button" class="fw-bold text-light py-0 position-absolute top-0 end-0 btn btn-danger h-100 rounded-0">X</button>
+                        </div>
+                        {%endif%}
+                        <canvas class="img-fluid d-none position-absolute rounded-top-1 z-2 h-100 w-100" alt="">
+
+                        </canvas>
+                        <input type="file" name="image1" accept="image/*" hidden />
+                        <input type="number" name="face_num1" accept="image/*" value="-2"
+                            id="face_num_input1" hidden />
+                        <!-- Dont render the second drag&drop if only 1 image uploaded -->
+                        {%if not current%}
+                        <div class="d-flex align-items-center justify-content-center 
+                        flex-column" id="dragarea1-content">
+                            <div class=" text-light user-select-none" style="font-size: 100px;">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <header class="text-light user-select-none text-center">
+                                Drag & Drop to Upload File
+                            </header>
+                            <span class="text-light user-select-none">OR</span>
+                            <button type="button" class="browse-btn btn  btn-light px-4 py-2">
+                                Browse File
+                            </button>
+                        </div>
+                        {%endif%}
+                    </div>
+                    <div>
+                        <div class="form-floating">
+                            <select id="combo-box1" class="form-select rounded-0 ">
+                                <option value="-2">All</option>
+                                {% for j in range(faces_length) %}
+                                <option value="{{ j }}">Face {{ j + 1 }}</option>
+                                {% endfor %}
+                            </select>
+                            <label class="" for="combo-box1">Select a Face:</label>
+                        </div>
+                        <div class="w-100">
+                            {%if current%}
+                            <button id="findBtn1" class="btn btn-success w-100 rounded-0"
+                                type="button">show faces</button>
+                                <button id="landmarksBtn1" class="btn btn-warning  w-100 rounded-bottom-2 rounded-top-0"
+                                type="button">show landmarks</button>
+                                {%endif%}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+
+            </div>
+        </form>
+    </div>
+    <div class="col-12">
+        <div class="row g-0">
+            {% for image in images %}
+            <div class="col-3 p-3 d-flex flex-column justify-content-center ">
+                <img src="http://127.0.0.1:5057/static/aligned_{{image['face_num']}}_{{image['image_name']}}" onclick="handleFaceClick(this.src)" />
+                <p class="text-truncate">aligned_{{image['face_num']}}_{{image['image_name']}}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    const current_images = [JSON.parse('{{ current | tojson | safe}}')];
+    const selected_faces = [JSON.parse('{{ selected_face | tojson | safe}}')];
+    if (messages.length > 0 || errors.length > 0) {
+        const myModal = new bootstrap.Modal(document.getElementById("myModal"));
+        myModal.show();
+    }
+</script>
+<script src="{{url_for('static', filename='js/image.js')}}"></script>
+<script src="{{url_for('static', filename='js/clustering.js')}}"></script>
+
+{% endblock %}
