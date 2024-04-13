@@ -1,6 +1,7 @@
 import tempfile
 from .app_paths import AppPaths
 import requests as req
+from flask import Request
 import os
 import zipfile
 from bs4 import BeautifulSoup
@@ -95,12 +96,12 @@ def upload_from_url(website_url):
         else:
             print(f"Failed to fetch the website. Status code: {response.status_code}")
         return messages,errors;
-def upload_from_request(request,current_images,faces_length,save_invalid=False):
+def upload_from_request(request:Request,current_images:list[str],faces_length:list[int],model_name:str,save_invalid=False):
     errors=[]
     with tempfile.TemporaryDirectory() as temp_dir:
         saved_files = saveTempFiles(temp_dir, request.files)
         if len(saved_files) > 0:
-            response = req.post(AppPaths.SERVER_URL + "/api/upload",data={"save_invalid":save_invalid}, files=saved_files)
+            response = req.post(AppPaths.SERVER_URL + "/api/upload",data={"save_invalid":save_invalid,"model_name":model_name}, files=saved_files)
             data = response.json()
             errors = errors + data["errors"]
             if len(data["images"]) > 0 or (save_invalid and len(data["invalid_images"])>0):

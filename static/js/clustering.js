@@ -21,18 +21,20 @@ $('.editButton').click(function () {
 
 
 $("#clusterBtn").on("click", async function () {
-    data=JSON.stringify({max_distance:0.5,min_samples:4,retrain:true});
+    model_name=$("#modelNameSelect").val()
+    data=JSON.stringify({max_distance:0.5,min_samples:4,retrain:true,model_name:model_name});
     let response = await postData("cluster",data);
     const filteredData = {};
     for (const key in response) {
-        if (Array.isArray(response[key]) && response[key].length <= 200) {
+        if (Array.isArray(response[key]) && response[key].length <= 400) {
             filteredData[key] = response[key];
         }
     }
     sendJsonFormPost("clustering", filteredData);
 });
 $("#groupsBtn").on("click", async function () {
-    data=JSON.stringify({max_distance:0.5,min_samples:4});
+    model_name=$("#modelNameSelect").val()
+    data=JSON.stringify({max_distance:0.5,min_samples:4,model_name:model_name});
     let response = await postData("cluster",data);
     const filteredData = {};
     for (const key in response) {
@@ -42,11 +44,7 @@ $("#groupsBtn").on("click", async function () {
     }
     sendJsonFormPost("clustering", filteredData);
 });
-async function test() {
-    jsonData = JSON.stringify({ old: "0", new: "Daniel Grinberg" });
-    let response = await postData("change_group_name", jsonData);
-    console.log(response);
-}
+
 
 async function handleFaceClick(src) {
     let result = getOriginalImagePath(src)

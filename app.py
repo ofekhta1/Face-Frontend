@@ -44,16 +44,17 @@ app.config["SERVER_URL"] = SERVER_URL
 def search():
     messages = []
     errors = []
-
+    model_name = session.get("model_name","")
     faces_length = session.get("faces_length",[0,0])
     current_images = session.get("current_images", [None,None])
     images=[]
     combochanges = session.get("selected_faces", [-2, -2])
     if request.method == "POST":
+        model_name=request.form.get("model_name",default="buffalo_l",type=str);
         combochanges= extract_face_selection_from_request(request);
         action = request.form.get("action")
         if(action=="Upload"):
-            upload_from_request(request,current_images,faces_length)
+            upload_from_request(request,current_images,faces_length,model_name)
         elif(action== "improve"):
             url = SERVER_URL + "/api/improve"
             length=len(current_images)
@@ -62,7 +63,7 @@ def search():
                 if(current_images[index].startswith('enhanced_')):
                     current_images[index]=current_images[index].replace("enhanced_","")
                 else:
-                    response = req.post(url, data={"image": current_images[index]})
+                    response = req.post(url, data={"image": current_images[index],"model_name":model_name})
                     data = response.json()
                     errors = errors + data["errors"]
                     messages = messages+data["messages"]
@@ -70,7 +71,7 @@ def search():
         elif(action=="Search"):
             k=request.form.get("k",3);
             url = SERVER_URL + "/api/check_many"
-            response = req.post(url, data={"image": current_images[0],"selected_face":combochanges[0],"number_of_images":k})
+            response = req.post(url, data={"image": current_images[0],"selected_face":combochanges[0],"number_of_images":k,"model_name":model_name})
             data = response.json()
             errors = errors + data["errors"]
             images = images + data["images"]
@@ -87,11 +88,13 @@ def search():
             
 
     session["current_images"] = current_images
+    session["model_name"] = model_name
     session["selected_faces"] = combochanges
     session["faces_length"] = faces_length
     return render_template(
         "search.html",
         images=images,
+        model_name=model_name,
         current=current_images[0] if len(current_images)>0 else None,
         faces_length=faces_length[0],
         selected_face=combochanges[0],
@@ -104,7 +107,10 @@ def clustering():
     errors = []
     messages = []
     groups = session.get("groups", {})
+    model_name = session.get("model_name","")
+    
     if request.method == "POST":
+        model_name=request.form.get("model_name",default="buffalo_l",type=str);
         try:
             jsonStr = request.form.get("jsonData", "")
             groups = json.loads(jsonStr)
@@ -112,26 +118,34 @@ def clustering():
         except Exception as e:
             print("failed to display clustering results because:")
             print(e)
+
+        
+    session["model_name"] = model_name
+
     return render_template(
         "clustering.html",
         groups=groups,
+        model_name=model_name,
         errors=errors,
         messages=messages,
     )
+
 @app.route("/check_family", methods=["GET", "POST"])
 def check_family():
     images = []
     messages = []
     errors = []
-
+    
+    model_name = session.get("model_name","")
     faces_length = session.get("faces_length", [0, 0])
     current_images = session.get("current_images", [])
     combochanges = session.get("selected_faces", [-2, -2])
     if request.method == "POST":
+        model_name=request.form.get("model_name",default="buffalo_l",type=str);
         combochanges= extract_face_selection_from_request(request);
         action = request.form.get("action")
         if(action=="Upload"):
-            upload_from_request(request,current_images,faces_length)
+            upload_from_request(request,current_images,faces_length,model_name)
         elif(action== "improve"):
             url = SERVER_URL + "/api/improve"
             length=len(current_images)
@@ -140,14 +154,14 @@ def check_family():
                 if(current_images[index].startswith('enhanced_')):
                     current_images[index]=current_images[index].replace("enhanced_","")
                 else:
-                    response = req.post(url, data={"image": current_images[index]})
+                    response = req.post(url, data={"image": current_images[index],"model_name":model_name})
                     data = response.json()
                     errors = errors + data["errors"]
                     messages = messages+data["messages"]
                     current_images[index]=data['enhanced_image']
         elif(action=="Check_Family"):
             url = SERVER_URL + "/api/check_family"
-            response = req.post(url, data={"images": current_images,"selected_faces":combochanges})
+            response = req.post(url, data={"images": current_images,"selected_faces":combochanges,"model_name":model_name})
             data = response.json()
             errors = errors + data["errors"]
             messages = messages + data["messages"]
@@ -165,11 +179,13 @@ def check_family():
 
     session["current_images"] = current_images
     session["selected_faces"] = combochanges
+    session["model_name"] = model_name
     session["faces_length"] = faces_length
     return render_template(
         "check_family.html",
         images=images,
         current=current_images,
+        model_name=model_name,
         faces_length=faces_length,
         selected_faces=combochanges,
         errors=errors,
@@ -179,7 +195,9 @@ def check_family():
 def upload():
     messages = []
     errors = []
+    model_name = session.get("model_name", "")
     if(request.method=="POST"):
+        model_name=request.form.get("model_name",default="buffalo_l",type=str);
         method=request.form.get("type","url");
         if(method=="url"):
             messages,errors=upload_from_url(website_url=request.form.get('website_url'))
@@ -188,22 +206,27 @@ def upload():
             file_like_object = file.stream._file  
             messages,errors=upload_from_zip(file_like_object)
 
+    session["model_name"] = model_name
         
     return render_template(
         "upload.html",
         errors=errors,
         messages=messages,
+        model_name=model_name
     )
 @app.route("/template_matching", methods=["GET", "POST"])
 def template_matching():
     messages = []
     errors = []
     box=[]
+    model_name = session.get("model_name", "")
     current_images = session.get("current_template_images", [])
+
     if request.method == "POST":
+        model_name=request.form.get("model_name",default="buffalo_l",type=str);
         action = request.form.get("action")
         if(action=="Upload"):
-            upload_from_request(request,current_images,[0,0],save_invalid=True)
+            upload_from_request(request,current_images,[0,0],model_name,save_invalid=True)
         elif(action=="Match_Template"):
             if(len(current_images)==0):
                 errors.append("Upload a template first!")
@@ -222,12 +245,13 @@ def template_matching():
         elif action == "Clear":
             current_images = []
     
-
+    session["model_name"] = model_name
     session["current_template_images"] = current_images
     return render_template(
         "template_matching.html",
         box=box,
         current=current_images,
+        model_name=model_name,
         errors=errors,
         messages=messages,
     )
@@ -238,7 +262,7 @@ def index():
     messages = []
     errors = []
     action = request.form.get("action")
-
+    model_name = session.get("model_name", "")
     uploaded_images = session.get("uploaded_images", [])
     faces_length = session.get("faces_length", [0, 0])
     current_images = session.get("current_images", [])
@@ -246,9 +270,10 @@ def index():
     combochanges = session.get("selected_faces", [-2, -2])
 
     if request.method == "POST":
+        model_name=request.form.get("model_name",default="buffalo_l",type=str);
         combochanges= extract_face_selection_from_request(request);
         if action == "Upload":
-            temp_err=upload_from_request(request,current_images,faces_length)
+            temp_err=upload_from_request(request,current_images,faces_length,model_name)
             errors=errors+temp_err
         elif action in ["Detect", "Align"]:
             if action == "Align":
@@ -257,7 +282,7 @@ def index():
             elif action == "Detect":
                 url = SERVER_URL + "/api/detect"
             if len(current_images) > 0:
-                response = req.post(url, data={"images": current_images})
+                response = req.post(url, data={"images": current_images,"model_name":model_name})
                 data = response.json()
                 uploaded_images = uploaded_images + data["images"]
                 errors = errors + data["errors"]
@@ -284,7 +309,7 @@ def index():
         elif action == "Compare":
             url = SERVER_URL + "/api/compare"
             response = req.post(
-                url, data={"images": current_images, "selected_faces": combochanges}
+                url, data={"images": current_images,"model_name":model_name, "selected_faces": combochanges}
             )
             data = response.json()
             errors = errors + data["errors"]
@@ -295,7 +320,7 @@ def index():
             if len(current_images) > 0:
                 response = req.post(
                     url,
-                    data={"image": current_images[0], "selected_face": combochanges[0]},
+                    data={"image": current_images[0], "model_name":model_name,"selected_face": combochanges[0]},
                 )
                 data = response.json()
                 errors = errors + data["errors"]
@@ -319,15 +344,15 @@ def index():
                 if(current_images[index].startswith('enhanced_')):
                     current_images[index]=current_images[index].replace("enhanced_","")
                 else:
-                    response = req.post(url, data={"image": current_images[index]})
+                    response = req.post(url, data={"image": current_images[index],"model_name":model_name})
                     data = response.json()
                     errors = errors + data["errors"]
                     messages = messages+data["messages"]
                     current_images[index]=data['enhanced_image']
 
  
-
         
+        session["model_name"] = model_name
         session["current_images"] = current_images
         session["selected_faces"] = combochanges
         session["uploaded_images"] = uploaded_images
@@ -338,6 +363,7 @@ def index():
     return render_template(
         "image.html",
         images=images,
+        model_name=model_name,
         current=current_images,
         faces_length=faces_length,
         selected_faces=combochanges,

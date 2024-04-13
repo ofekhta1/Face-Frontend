@@ -89,7 +89,11 @@ block content %}
         <div class="row g-0">
             {% for image in images %}
                 <div class="col-3 p-3 d-flex flex-column justify-content-center ">
+<<<<<<< HEAD
                 <img src="http://127.0.0.1:5057/static/buffalo_l/aligned_{{image['face_num']}}_{{image['image_name']}}" onclick="handleFaceClick(this.src)" />
+=======
+                <img src="http://127.0.0.1:5057/static/{{model_name}}/aligned_{{image['face_num']}}_{{image['image_name']}}" onclick="handleFaceClick(this.src)" />
+>>>>>>> c2c145e (Some changes to include multiple models, currently hard coded)
                 <p class="text-truncate">aligned_{{image['face_num']}}_{{image['image_name']}}</p>
             </div>
             {% endfor %}

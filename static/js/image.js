@@ -84,14 +84,18 @@ function getImgParams($comboBox, areaNumber) {
 function getFaceNums(){
   $("")
 }
-async function getFacePath($comboBox, areaNumber) {
+async function getFacePath($comboBox, areaNumber,model_name) {
   let $params = getImgParams($comboBox, areaNumber);
   let path = "";
   let face_num = $params.faceNum;
   if ($params.faceNum == -2) {
     path = SERVER_URL + `/pool/${$params.fileName}`;
   } else {
-    path = SERVER_URL + `/static/buffalo_l/aligned_${face_num}_${$params.fileName}`;
+    path = SERVER_URL + `/static/${model_name}/aligned_${face_num}_${$params.fileName}`;
+<<<<<<< HEAD
+>>>>>>> c2c145e (Some changes to include multiple models, currently hard coded)
+=======
+>>>>>>> df01832 (fix stuff)
   }
   const exists = await checkFileExists(path);
   return { path, exists, face_num };
@@ -213,7 +217,7 @@ function setupDropArea($dropArea, areaNumber) {
   });
 
   $comboBox.on("change", async function () {
-    let result = await getFacePath($(this), areaNumber);
+    let result = await getFacePath($(this), areaNumber,model_name);
     if (result.exists) {
       //display
       $(`#face_num_input${areaNumber}`).val(result.face_num);
@@ -344,4 +348,8 @@ async function checkFileExists(filePath) {
   } catch (error) {
     return false;
   }
+}
+
+function updateThreshold(elem){
+  $(elem).next().val($(elem).val());
 }
