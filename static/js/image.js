@@ -92,10 +92,6 @@ async function getFacePath($comboBox, areaNumber,model_name) {
     path = SERVER_URL + `/pool/${$params.fileName}`;
   } else {
     path = SERVER_URL + `/static/${model_name}/aligned_${face_num}_${$params.fileName}`;
-<<<<<<< HEAD
->>>>>>> c2c145e (Some changes to include multiple models, currently hard coded)
-=======
->>>>>>> df01832 (fix stuff)
   }
   const exists = await checkFileExists(path);
   return { path, exists, face_num };
@@ -348,8 +344,4 @@ async function checkFileExists(filePath) {
   } catch (error) {
     return false;
   }
-}
-
-function updateThreshold(elem){
-  $(elem).next().val($(elem).val());
 }
