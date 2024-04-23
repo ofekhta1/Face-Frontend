@@ -11,6 +11,9 @@ async function postData(endpoint, data) {
     console.error("Error:", error);
   }
 }
+function updateRangeOutput(element){
+  element.nextElementSibling.value = parseFloat(element.value).toFixed(2)
+}
 async function getData(endpoint) {
   try {
     const response = await fetch(`http://127.0.0.1:5057/api/${endpoint}`, {

@@ -46,7 +46,7 @@ def search():
     errors = []
     model_name = session.get("model_name","")
     faces_length = session.get("faces_length",[0,0])
-    current_images = session.get("current_images", [None,None])
+    current_images = session.get("current_images", [])
     images=[]
     combochanges = session.get("selected_faces", [-2, -2])
     if request.method == "POST":
@@ -108,12 +108,17 @@ def clustering():
     messages = []
     groups = session.get("groups", {})
     model_name = session.get("model_name","")
+    parameters = session.get("parameters", {})
     
     if request.method == "POST":
         model_name=request.form.get("model_name",default="buffalo_l",type=str);
         try:
             jsonStr = request.form.get("jsonData", "")
-            groups = json.loads(jsonStr)
+            data = json.loads(jsonStr)
+            groups=data["groups"]
+            parameters['similarity_thresh']=data["similarity_thresh"];
+            parameters['min_group_size']=data["min_group_size"];
+
             session["groups"] = groups
         except Exception as e:
             print("failed to display clustering results because:")
@@ -121,12 +126,14 @@ def clustering():
 
         
     session["model_name"] = model_name
+    session["parameters"] = parameters
 
     return render_template(
         "clustering.html",
         groups=groups,
         model_name=model_name,
         errors=errors,
+        parameters=parameters,
         messages=messages,
     )
 
@@ -138,9 +145,12 @@ def check_family():
     
     model_name = session.get("model_name","")
     faces_length = session.get("faces_length", [0, 0])
+    parameters = session.get("parameters", {})
     current_images = session.get("current_images", [])
     combochanges = session.get("selected_faces", [-2, -2])
     if request.method == "POST":
+        similarity_thresh=request.form.get("SimilarityThreshold",default=0.5,type=float);
+        parameters['similarity_thresh']=similarity_thresh
         model_name=request.form.get("model_name",default="buffalo_l",type=str);
         combochanges= extract_face_selection_from_request(request);
         action = request.form.get("action")
@@ -161,7 +171,10 @@ def check_family():
                     current_images[index]=data['enhanced_image']
         elif(action=="Check_Family"):
             url = SERVER_URL + "/api/check_family"
-            response = req.post(url, data={"images": current_images,"selected_faces":combochanges,"model_name":model_name})
+            response = req.post(url, data={"images": current_images,
+                                           "selected_faces":combochanges,
+                                           "similarity_thresh":similarity_thresh,
+                                           "model_name":model_name})
             data = response.json()
             errors = errors + data["errors"]
             messages = messages + data["messages"]
@@ -177,6 +190,7 @@ def check_family():
 
             
 
+    session["parameters"] = parameters
     session["current_images"] = current_images
     session["selected_faces"] = combochanges
     session["model_name"] = model_name
@@ -188,6 +202,7 @@ def check_family():
         model_name=model_name,
         faces_length=faces_length,
         selected_faces=combochanges,
+        parameters=parameters,
         errors=errors,
         messages=messages,
     )
@@ -258,19 +273,19 @@ def template_matching():
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    images = []
     messages = []
     errors = []
     action = request.form.get("action")
     model_name = session.get("model_name", "")
-    uploaded_images = session.get("uploaded_images", [])
     faces_length = session.get("faces_length", [0, 0])
     current_images = session.get("current_images", [])
-    #current_detect_images="detected_"+current_images
+    parameters = session.get("parameters", {})
     combochanges = session.get("selected_faces", [-2, -2])
 
     if request.method == "POST":
         model_name=request.form.get("model_name",default="buffalo_l",type=str);
+        similarity_thresh=request.form.get("SimilarityThreshold",default=0.5,type=float);
+        parameters['similarity_thresh']=similarity_thresh
         combochanges= extract_face_selection_from_request(request);
         if action == "Upload":
             temp_err=upload_from_request(request,current_images,faces_length,model_name)
@@ -320,7 +335,10 @@ def index():
             if len(current_images) > 0:
                 response = req.post(
                     url,
-                    data={"image": current_images[0], "model_name":model_name,"selected_face": combochanges[0]},
+                    data={"image": current_images[0],
+                           "model_name":model_name,
+                           "selected_face": combochanges[0],
+                           "similarity_thresh":similarity_thresh}
                 )
                 data = response.json()
                 errors = errors + data["errors"]
@@ -333,7 +351,14 @@ def index():
                         current_images[1] = most_similar_image
                     combochanges[1] = data["face"]
                     faces_length[1] = data["face_length"]
+                else:
+                    if len(current_images) == 2:
+                        del current_images[1]
+                    combochanges[1]=-2
+                    faces_length[1]=0
+
             else:
+               
                 errors.append("No images uploaded!")
         
         elif action == "improve":
@@ -352,18 +377,17 @@ def index():
 
  
         
+        session["parameters"] = parameters
         session["model_name"] = model_name
         session["current_images"] = current_images
         session["selected_faces"] = combochanges
-        session["uploaded_images"] = uploaded_images
         session["faces_length"] = faces_length
 
-    images = uploaded_images
     
     return render_template(
         "image.html",
-        images=images,
         model_name=model_name,
+        parameters=parameters,
         current=current_images,
         faces_length=faces_length,
         selected_faces=combochanges,

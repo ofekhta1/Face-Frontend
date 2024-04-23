@@ -8,10 +8,11 @@ $('.editButton').click(function () {
     inputElement.after(confirmButton);
 
     confirmButton.click(async function(){
+        model_name=$("#modelNameSelect").val()
         var updatedText = inputElement.val();
         var newTextElement = $('<div>').addClass('editableText').text(updatedText);
         inputElement.replaceWith(newTextElement);
-        jsonData = JSON.stringify({ old: currentText, new: updatedText });
+        jsonData = JSON.stringify({ old: currentText, new: updatedText,model_name:model_name });
         let response = await postData("change_group_name", jsonData);
         console.log(response);
         confirmButton.remove();
@@ -21,30 +22,29 @@ $('.editButton').click(function () {
 
 
 $("#clusterBtn").on("click", async function () {
-    model_name=$("#modelNameSelect").val()
-    data=JSON.stringify({max_distance:0.5,min_samples:4,retrain:true,model_name:model_name});
-    let response = await postData("cluster",data);
-    const filteredData = {};
-    for (const key in response) {
-        if (Array.isArray(response[key]) && response[key].length <= 400) {
-            filteredData[key] = response[key];
-        }
-    }
-    sendJsonFormPost("clustering", filteredData);
+    await get_clusters(true);
 });
 $("#groupsBtn").on("click", async function () {
+    await get_clusters(false);
+});
+async function get_clusters(retrain){
     model_name=$("#modelNameSelect").val()
-    data=JSON.stringify({max_distance:0.5,min_samples:4,model_name:model_name});
+    let max_distance=1-$("#SimilarityThreshold").val()
+    let min_group_size=$("#MinGroupSize").val()
+    data=JSON.stringify({max_distance:max_distance,min_samples:min_group_size,retrain:retrain,model_name:model_name});
     let response = await postData("cluster",data);
     const filteredData = {};
+    filteredData["groups"]={}
     for (const key in response) {
-        if (Array.isArray(response[key]) && response[key].length <= 20) {
-            filteredData[key] = response[key];
+        if (Array.isArray(response[key]) && response[key].length <= 400) {
+            filteredData["groups"][key] = response[key];
         }
     }
-    sendJsonFormPost("clustering", filteredData);
-});
+    filteredData["similarity_thresh"]=1-max_distance
+    filteredData["min_group_size"]=min_group_size
 
+    sendJsonFormPost("clustering", filteredData);
+}
 
 async function handleFaceClick(src) {
     let result = getOriginalImagePath(src)

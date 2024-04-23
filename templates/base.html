@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 
 <head>
   <meta charset="UTF-8" />
@@ -17,7 +17,7 @@
 
 </head>
 
-<body>
+<body class="d-flex flex-column">
 
 
   <script>
@@ -34,7 +34,7 @@
 <script src="{{url_for('static', filename='js/shared.js')}}"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"
 integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-<nav class="navbar navbar-expand-lg bg-body-tertiary">
+<nav class=" navbar navbar-expand-lg bg-body-tertiary">
   <div class="container-fluid">
     <a class="navbar-brand" href="#">Image Processing</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -98,7 +98,6 @@ integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="ano
     </div>
   </div>
   {% block content %} {% endblock %}
-  
 </body>
 <script>
   $("#modelNameSelect").val(model_name)
@@ -114,6 +113,9 @@ integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="ano
             name: 'model_name',
             value: model_name
         }).appendTo(form)
+  })
+  $('.parameter').on("input",(e)=>updateRangeOutput(e.target)).each((index,elem)=>{
+      updateRangeOutput(elem);
   })
 </script>
 </html>

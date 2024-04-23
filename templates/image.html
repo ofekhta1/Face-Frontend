@@ -1,13 +1,11 @@
 {% extends "base.html" %} {% block title %} Image Processing {% endblock %} {%
 block content %}
 
-<div class="content">
-    <h1 class="text-light m-4 text-center user-select-none">Upload and Process Images</h1>
-    <div class="main-container mb-5">
-
-
-        <form action="/" method="POST" enctype="multipart/form-data" class="w-100">
-            <div class="d-flex align-items-center justify-content-center">
+<div class="content d-flex flex-column">
+    <h1 class="text-light p-4 text-center user-select-none">Upload and Process Images</h1>
+    <div class="main-container">
+        <form action="/" method="POST" enctype="multipart/form-data" class="w-100 h-100 d-flex flex-column">
+            <div class="d-flex align-items-center justify-content-center flex-grow-1">
                 {% for i in range(2) %}
                 <div class="d-flex flex-column col-4">
                     <!-- Drag area  -->
@@ -85,7 +83,6 @@ block content %}
                     {% if current | length == 0%}
                     <button id="startVideoBtn" class="submit-btn rounded-3 w-75 m-2" type="button">Start Video</button>
                     {%else%}
-                   
                     {%endif%}
                     <input type="submit" name="action" value="Check" class="submit-btn w-75 m-2" />
                     {% if current | length == 2%}
@@ -96,13 +93,31 @@ block content %}
                 {% endif %}
                 {% endfor %}
             </div>
+
+            <div class="bg-light w-100 pb-4 mt-2">
+                <h3 class="text-center pb-3">Parameters</h3>
+                <div class="container">
+                    <div class="row">
+                        <div class="offset-4 col-2">Similarity Threshold:</div>
+                        <div class="col-1 d-flex">
+                            <input class="parameter" min="0" max="1" value="0.5" step="0.05" type="range"
+                            id="similarityThreshRange" name="SimilarityThreshold" />
+                            <output class="ms-1"></output>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </form>
+        
     </div>
-    <div id="messageContainer" style="z-index: 11" class="position-fixed bottom-0 w-25 end-0 p-0"></div>
+    
+
 
 </div>
 
 <script>
+    const similarity_thresh = parseFloat('{{parameters["similarity_thresh"]}}');
+    $('#similarityThreshRange').val(similarity_thresh)
     const current_images = JSON.parse('{{ current | tojson | safe}}');
     const selected_faces = JSON.parse('{{ selected_faces | tojson | safe}}');
     if (messages.length > 0 || errors.length > 0) {
