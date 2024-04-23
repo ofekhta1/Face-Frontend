@@ -5,7 +5,7 @@ from flask import Request
 import os
 import zipfile
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
+from urllib.parse import urljoin,urlparse
 
 def saveTempFiles(temp_dir, files):
     saved_files = {}
@@ -74,6 +74,7 @@ def upload_from_zip(zip_file,save_invalid=False):
 def upload_from_url(website_url):
     with tempfile.TemporaryDirectory() as temp_dir:
         downloaded_images={};
+        files=[]
         errors=[]
         messages=[]
         response = req.get(website_url)
@@ -84,13 +85,17 @@ def upload_from_url(website_url):
             for img in img_tags:
                 i=i+1;
                 img_url = img.get("src")
-                img_url = urljoin(website_url, img_url)
+                img_url = urljoin(website_url, urlparse(img_url).path)
                 fileName=save_image_from_url(img_url, temp_dir)
-                downloaded_images[f"image{i}"] =  open(fileName,'rb')
+                files.append(fileName)
+            downloaded_images= {f"image{i}": open(files[i],"rb") for i in range(len(files))}
+           
             # messages.append("Images downloaded and saved successfully.")
             if len(downloaded_images) > 0:
                 response = req.post(AppPaths.SERVER_URL + "/api/upload", files=downloaded_images)
                 data = response.json()
+                for image in downloaded_images.values():
+                    image.close();
                 errors = errors + data["errors"]
     
         else:
