@@ -47,11 +47,14 @@ def search():
     model_name = session.get("model_name","")
     faces_length = session.get("faces_length",[0,0])
     current_images = session.get("current_images", [])
+    parameters = session.get("parameters", {})
     images=[]
     combochanges = session.get("selected_faces", [-2, -2])
     if request.method == "POST":
         model_name=request.form.get("model_name",default="buffalo_l",type=str);
         combochanges= extract_face_selection_from_request(request);
+        similarity_thresh=request.form.get("SimilarityThreshold",default=0.5,type=float);
+        parameters['similarity_thresh']=similarity_thresh
         action = request.form.get("action")
         if(action=="Upload"):
             upload_from_request(request,current_images,faces_length,model_name)
@@ -71,7 +74,11 @@ def search():
         elif(action=="Search"):
             k=request.form.get("k",3);
             url = SERVER_URL + "/api/check_many"
-            response = req.post(url, data={"image": current_images[0],"selected_face":combochanges[0],"number_of_images":k,"model_name":model_name})
+            response = req.post(url, data={"image": current_images[0],
+                                           "selected_face":combochanges[0],
+                                           "similarity_thresh":similarity_thresh,
+                                           "number_of_images":k,
+                                           "model_name":model_name})
             data = response.json()
             errors = errors + data["errors"]
             images = images + data["images"]
@@ -85,8 +92,7 @@ def search():
                 faces_length.append(0)
                 combochanges.append(0)
 
-            
-
+    session["parameters"] = parameters
     session["current_images"] = current_images
     session["model_name"] = model_name
     session["selected_faces"] = combochanges
@@ -98,6 +104,7 @@ def search():
         current=current_images[0] if len(current_images)>0 else None,
         faces_length=faces_length[0],
         selected_face=combochanges[0],
+        parameters=parameters,
         errors=errors,
         messages=messages,
     )

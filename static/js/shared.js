@@ -74,11 +74,11 @@ function makeCanvas(src) {
       const displaySize = { width: img.width, height: img.height };
       faceapi.matchDimensions(canvas, displaySize);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas);
     };
     img.onerror = (error) => reject(error);
     // Set the source of the image
     img.src = src;
-    resolve(canvas);
   });
 }
 

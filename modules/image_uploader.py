@@ -87,7 +87,8 @@ def upload_from_url(website_url):
                 img_url = img.get("src")
                 img_url = urljoin(website_url, urlparse(img_url).path)
                 fileName=save_image_from_url(img_url, temp_dir)
-                files.append(fileName)
+                if fileName:
+                    files.append(fileName)
             downloaded_images= {f"image{i}": open(files[i],"rb") for i in range(len(files))}
            
             # messages.append("Images downloaded and saved successfully.")
