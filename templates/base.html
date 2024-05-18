@@ -24,9 +24,13 @@
     const errors = JSON.parse('{{ errors | tojson | safe}}');
     const messages = JSON.parse('{{ messages | tojson | safe}}');
     const SERVER_URL = "{{config['SERVER_URL']}}"
-    let model_name="{{model_name }}"
-    if (!model_name.trim()) {
-      model_name = "buffalo_l";
+    let embedder_name="{{embedder_name }}"
+    let detector_name="{{detector_name }}"
+    if (!detector_name.trim()) {
+      detector_name = "SCRFD10G";
+    }
+    if (!embedder_name.trim()) {
+      embedder_name = "ResNet100GLint360K";
     }
 
   </script>
@@ -62,12 +66,16 @@ integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="ano
         </li>
       </ul>
       <div class="d-flex align-items-center">
-        <span class="me-1">Model:</span>
-        <select class="form-select" name="model_name"  id="modelNameSelect" aria-label="Floating label select ">
-          <option value="buffalo_l">buffalo_l</option>
-          <option value="antelopev2">antelopev2</option>
+        <span class="me-1">Detector:</span>
+        <select class="form-select me-2" name="detector_name"  id="detectorNameSelect" aria-label="Floating label select ">
+          <option value="SCRFD10G">scrfd_10g</option>
+          <option value="RetinaFace10GF">RetinaFace_10g</option>
         </select>
-      
+        <span class="me-1">Embedder:</span>
+        <select class="form-select" name="embedder_name"  id="embedderNameSelect" aria-label="Floating label select ">
+          <option value="ResNet100GLint360K">ResNet100</option>
+          <option value="ResNet50WebFace600K">ResNet50</option>
+        </select>
       </div>
     </div>
   </div>
@@ -100,18 +108,29 @@ integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="ano
   {% block content %} {% endblock %}
 </body>
 <script>
-  $("#modelNameSelect").val(model_name)
-  $("#modelNameSelect").change(function(){
+  $("#embedderNameSelect").val(embedder_name)
+  $("#embedderNameSelect").change(function(){
         // Get the new value of the select element
         var newValue = $(this).val();
-        model_name=newValue
+        embedder_name=newValue
+    });
+  $("#detectorNameSelect").val(detector_name)
+  $("#detectorNameSelect").change(function(){
+        // Get the new value of the select element
+        var newValue = $(this).val();
+        detector_name=newValue
     });
   $('form').on('submit',(e)=>{
     form=e.target
     $('<input>').attr({
             type: 'hidden',
-            name: 'model_name',
-            value: model_name
+            name: 'detector_name',
+            value: detector_name
+        }).appendTo(form)
+    $('<input>').attr({
+            type: 'hidden',
+            name: 'embedder_name',
+            value: embedder_name
         }).appendTo(form)
   })
   $('.parameter').on("input",(e)=>updateRangeOutput(e.target)).each((index,elem)=>{

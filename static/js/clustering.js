@@ -7,12 +7,11 @@ $('.editButton').click(function () {
     var confirmButton = $('<button>').text('Confirm');
     inputElement.after(confirmButton);
 
-    confirmButton.click(async function(){
-        model_name=$("#modelNameSelect").val()
+    confirmButton.click(async function () {
         var updatedText = inputElement.val();
         var newTextElement = $('<div>').addClass('editableText').text(updatedText);
         inputElement.replaceWith(newTextElement);
-        jsonData = JSON.stringify({ old: currentText, new: updatedText,model_name:model_name });
+        jsonData = JSON.stringify({ old: currentText, new: updatedText, detector_name: detector_name, embedder_name: embedder_name });
         let response = await postData("change_group_name", jsonData);
         console.log(response);
         confirmButton.remove();
@@ -27,21 +26,23 @@ $("#clusterBtn").on("click", async function () {
 $("#groupsBtn").on("click", async function () {
     await get_clusters(false);
 });
-async function get_clusters(retrain){
-    model_name=$("#modelNameSelect").val()
-    let max_distance=1-$("#SimilarityThreshold").val()
-    let min_group_size=$("#MinGroupSize").val()
-    data=JSON.stringify({max_distance:max_distance,min_samples:min_group_size,retrain:retrain,model_name:model_name});
-    let response = await postData("cluster",data);
+async function get_clusters(retrain) {
+    let max_distance = 1 - $("#SimilarityThreshold").val()
+    let min_group_size = $("#MinGroupSize").val()
+    data = JSON.stringify({
+        max_distance: max_distance, min_samples: min_group_size, retrain: retrain, detector_name: detector_name,
+        embedder_name: embedder_name
+    });
+    let response = await postData("cluster", data);
     const filteredData = {};
-    filteredData["groups"]={}
+    filteredData["groups"] = {}
     for (const key in response) {
         if (Array.isArray(response[key]) && response[key].length <= 400) {
             filteredData["groups"][key] = response[key];
         }
     }
-    filteredData["similarity_thresh"]=1-max_distance
-    filteredData["min_group_size"]=min_group_size
+    filteredData["similarity_thresh"] = 1 - max_distance
+    filteredData["min_group_size"] = min_group_size
 
     sendJsonFormPost("clustering", filteredData);
 }
