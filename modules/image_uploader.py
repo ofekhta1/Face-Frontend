@@ -102,7 +102,7 @@ def upload_from_url(website_url):
         else:
             print(f"Failed to fetch the website. Status code: {response.status_code}")
         return messages,errors;
-def upload_from_request(request:Request,current_images:list[str],faces_length:list[int],
+def upload_from_request(request:Request,current_images:list[str],faces_length:list[dict[str,list[int]]],
                         detector_name:str,embedder_name:str,save_invalid=False):
     errors=[]
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -124,7 +124,7 @@ def upload_from_request(request:Request,current_images:list[str],faces_length:li
                         current_images.append(uploaded[i])
                     else:
                         current_images[current_index] = uploaded[i]
-                    faces_length[current_index] = data["faces_length"][i]
+                    faces_length[current_index] = data["detector_indices"][i]
 
 
             for saved in saved_files.values():

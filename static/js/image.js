@@ -4,7 +4,7 @@ $('#showFormButton').on('click', function () {
   $('#downloadForm').toggle();
 });
 
-
+ 
 $("#startVideoBtn").on("click", function () {
   const video = $("#video")[0]; // Get the video element using jQuery
   if (current_images.length === 0) {
@@ -264,7 +264,7 @@ $(document).ready(function () {
       } else {
         path =
           SERVER_URL +
-          `/static/SCRFD10G/aligned_${selected_faces[index]}_${current_images[index]}`;
+          `/static/${detector_name}/aligned_${selected_faces[index]}_${current_images[index]}`;
         $comboBoxes[index].val(selected_faces[index]);
         $(`#face_num_input${index + 1}`).val(selected_faces[index]);
       }

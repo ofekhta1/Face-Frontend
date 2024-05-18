@@ -116,6 +116,7 @@ function sendJsonFormPost(endpoint,data){
     embedderData.name = 'embedder_name'; // This will be the key on the server side
     embedderData.value = embedder_name;
     form.appendChild(detectorData)
+    $("[id^=face_num_input]").appendTo(form);
     form.appendChild(embedderData)
     form.appendChild(jsonData);
     document.body.appendChild(form);

@@ -46,7 +46,7 @@ def search():
 	errors = []
 	detector_name = session.get("detector_name","")
 	embedder_name = session.get("embedder_name","")
-	faces_length = session.get("faces_length",[0,0])
+	faces_indices = session.get("faces_indices",[{},{}])
 	current_images = session.get("current_images", [])
 	parameters = session.get("parameters", {})
 	images=[]
@@ -54,12 +54,12 @@ def search():
 	if request.method == "POST":
 		detector_name=request.form.get("detector_name",default="SCRFD10G",type=str);
 		embedder_name=request.form.get("embedder_name",default="ResNet100GLint360K",type=str);
-		combochanges= extract_face_selection_from_request(request);
+		combochanges= extract_face_selection_from_request(request,faces_indices);
 		similarity_thresh=request.form.get("SimilarityThreshold",default=0.5,type=float);
 		parameters['similarity_thresh']=similarity_thresh
 		action = request.form.get("action")
 		if(action=="Upload"):
-			upload_from_request(request,current_images,faces_length,detector_name,embedder_name)
+			upload_from_request(request,current_images,faces_indices,detector_name,embedder_name)
 		elif(action== "improve"):
 			url = SERVER_URL + "/api/improve"
 			length=len(current_images)
@@ -90,9 +90,9 @@ def search():
 			index=request.form.get("index",type=int);
 			if index is not None and index<length:
 				del current_images[index]
-				del faces_length[index]
+				del faces_indices[index]
 				del combochanges[index]
-				faces_length.append(0)
+				faces_indices.append(0)
 				combochanges.append(0)
 
 	session["parameters"] = parameters
@@ -100,14 +100,14 @@ def search():
 	session["detector_name"] = detector_name
 	session["embedder_name"] = embedder_name
 	session["selected_faces"] = combochanges
-	session["faces_length"] = faces_length
+	session["faces_indices"] = faces_indices
 	return render_template(
 		"search.html",
 		images=images,
 		embedder_name=embedder_name,
 		detector_name=detector_name,
 		current=current_images[0] if len(current_images)>0 else None,
-		faces_length=faces_length[0],
+		faces_indices=faces_indices[0],
 		selected_face=combochanges[0],
 		parameters=parameters,
 		errors=errors,
@@ -161,7 +161,7 @@ def check_family():
 	
 	detector_name = session.get("detector_name","")
 	embedder_name = session.get("embedder_name","")
-	faces_length = session.get("faces_length", [0, 0])
+	faces_indices = session.get("faces_indices", [{},{}])
 	parameters = session.get("parameters", {})
 	current_images = session.get("current_images", [])
 	combochanges = session.get("selected_faces", [-2, -2])
@@ -170,10 +170,10 @@ def check_family():
 		parameters['similarity_thresh']=similarity_thresh
 		detector_name=request.form.get("detector_name",default="SCRFD10G",type=str);
 		embedder_name=request.form.get("embedder_name",default="ResNet100GLint360K",type=str);
-		combochanges= extract_face_selection_from_request(request);
+		combochanges= extract_face_selection_from_request(request,faces_indices);
 		action = request.form.get("action")
 		if(action=="Upload"):
-			upload_from_request(request,current_images,faces_length,model_name)
+			upload_from_request(request,current_images,faces_indices,detector_name,embedder_name)
 		elif(action== "improve"):
 			url = SERVER_URL + "/api/improve"
 			length=len(current_images)
@@ -182,7 +182,7 @@ def check_family():
 				if(current_images[index].startswith('enhanced_')):
 					current_images[index]=current_images[index].replace("enhanced_","")
 				else:
-					response = req.post(url, data={"image": current_images[index],"model_name":model_name})
+					response = req.post(url, data={"image": current_images[index],"detector_name":detector_name,"embedder_name":embedder_name})
 					data = response.json()
 					errors = errors + data["errors"]
 					messages = messages+data["messages"]
@@ -202,9 +202,9 @@ def check_family():
 			index=request.form.get("index",type=int);
 			if index is not None and index<length:
 				del current_images[index]
-				del faces_length[index]
+				del faces_indices[index]
 				del combochanges[index]
-				faces_length.append(0)
+				faces_indices.append(0)
 				combochanges.append(0)
 
 			
@@ -214,14 +214,14 @@ def check_family():
 	session["selected_faces"] = combochanges
 	session["detector_name"] = detector_name
 	session["embedder_name"] = embedder_name
-	session["faces_length"] = faces_length
+	session["faces_indices"] = faces_indices
 	return render_template(
 		"check_family.html",
 		images=images,
 		current=current_images,
 		embedder_name=embedder_name,
 		detector_name=detector_name,
-		faces_length=faces_length,
+		faces_indices=faces_indices,
 		selected_faces=combochanges,
 		parameters=parameters,
 		errors=errors,
@@ -294,7 +294,7 @@ def template_matching():
 		"template_matching.html",
 		box=box,
 		current=current_images,
-				embedder_name=embedder_name,
+		embedder_name=embedder_name,
 		detector_name=detector_name,
 		errors=errors,
 		messages=messages,
@@ -307,7 +307,7 @@ def index():
 	action = request.form.get("action")
 	embedder_name = session.get("embedder_name", "")
 	detector_name = session.get("detector_name", "")
-	faces_length = session.get("faces_length", [0, 0])
+	faces_indices = session.get("faces_indices", [{},{}])
 	current_images = session.get("current_images", [])
 	parameters = session.get("parameters", {})
 	combochanges = session.get("selected_faces", [-2, -2])
@@ -317,9 +317,9 @@ def index():
 		embedder_name=request.form.get("embedder_name",default="ResNet100GLint360K",type=str);
 		similarity_thresh=request.form.get("SimilarityThreshold",default=0.5,type=float);
 		parameters['similarity_thresh']=similarity_thresh
-		combochanges= extract_face_selection_from_request(request);
+		combochanges= extract_face_selection_from_request(request,faces_indices);
 		if action == "Upload":
-			temp_err=upload_from_request(request,current_images,faces_length,detector_name,embedder_name)
+			temp_err=upload_from_request(request,current_images,faces_indices,detector_name,embedder_name)
 			errors=errors+temp_err
 		elif action in ["Detect", "Align"]:
 			if action == "Align":
@@ -335,8 +335,8 @@ def index():
 				# current_images=data['images']
 				messages = messages + data["messages"]
 			 
-				for i in range(len(data['faces_length'])):
-					faces_length[i]=data['faces_length'][i]
+				for i in range(len(data['faces_indices'])):
+					faces_indices[i]=data['faces_indices'][i]
 			else:
 				errors.append("No images uploaded!")
 		elif action == "Clear":
@@ -344,9 +344,9 @@ def index():
 			index=request.form.get("index",type=int);
 			if index is not None and index<length:
 				del current_images[index]
-				del faces_length[index]
+				del faces_indices[index]
 				del combochanges[index]
-				faces_length.append(0)
+				faces_indices.append({})
 				combochanges.append(0)
 
 				uploaded_images = []
@@ -383,12 +383,12 @@ def index():
 					else:
 						current_images[1] = most_similar_image
 					combochanges[1] = data["face"]
-					faces_length[1] = data["face_length"]
+					faces_indices[1] = data["detector_indices"]
 				else:
 					if len(current_images) == 2:
 						del current_images[1]
 					combochanges[1]=-2
-					faces_length[1]=0
+					faces_indices[1]={}
 
 			else:
 			   
@@ -415,7 +415,7 @@ def index():
 		session["embedder_name"] = embedder_name
 		session["current_images"] = current_images
 		session["selected_faces"] = combochanges
-		session["faces_length"] = faces_length
+		session["faces_indices"] = faces_indices
 
 	
 	return render_template(
@@ -424,7 +424,7 @@ def index():
 		detector_name=detector_name,
 		parameters=parameters,
 		current=current_images,
-		faces_length=faces_length,
+		faces_indices=faces_indices,
 		selected_faces=combochanges,
 		errors=errors,
 		messages=messages,

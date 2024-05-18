@@ -59,7 +59,7 @@
                             <div class="form-floating">
                                 <select id="combo-box{{i+1}}" class="form-select rounded-0 ">
                                     <option value="-2">All</option>
-                                    {% for j in range(faces_length[i]) %}
+                                    {% for j in range(faces_indices[i][detector_name]|length) %}
                                     <option value="{{ j }}">Face {{ j + 1 }}</option>
                                     {% endfor %}
                                 </select>
