@@ -93,7 +93,7 @@
                     {% endif %}
                     {% endfor %}
                 </div>
-                <div class="bg-light w-100 pb-4 mt-2">
+                <!-- <div class="bg-light w-100 pb-4 mt-2">
                     <h3 class="text-center pb-3">Parameters</h3>
                     <div class="container">
                         <div class="row">
@@ -105,14 +105,14 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
             </form>
         </div>
     </div>
     
     <script>
-        const similarity_thresh = parseFloat('{{parameters["similarity_thresh"]}}');
-        $('#similarityThreshRange').val(similarity_thresh)
+        // const similarity_thresh = parseFloat('{{parameters["similarity_thresh"]}}');
+        // $('#similarityThreshRange').val(similarity_thresh)
         const current_images = JSON.parse('{{ current | tojson | safe}}');
         const selected_faces = JSON.parse('{{ selected_faces | tojson | safe}}');
         if (messages.length > 0 || errors.length > 0) {

@@ -28,10 +28,17 @@ $("#groupsBtn").on("click", async function () {
     await get_clusters(false);
 });
 async function get_clusters(retrain){
+    let cluster_family = $('input[name="ClusterFamily"]:checked').val();
     model_name=$("#modelNameSelect").val()
     let max_distance=1-$("#SimilarityThreshold").val()
     let min_group_size=$("#MinGroupSize").val()
-    data=JSON.stringify({max_distance:max_distance,min_samples:min_group_size,retrain:retrain,model_name:model_name});
+    let data = JSON.stringify({
+        max_distance: max_distance,
+        min_samples: min_group_size,
+        retrain: retrain,
+        model_name: model_name,
+        cluster_family: cluster_family // 
+    });
     let response = await postData("cluster",data);
     const filteredData = {};
     filteredData["groups"]={}
@@ -40,8 +47,10 @@ async function get_clusters(retrain){
             filteredData["groups"][key] = response[key];
         }
     }
+  
     filteredData["similarity_thresh"]=1-max_distance
     filteredData["min_group_size"]=min_group_size
+    filteredData["cluster_family"]=cluster_family
 
     sendJsonFormPost("clustering", filteredData);
 }

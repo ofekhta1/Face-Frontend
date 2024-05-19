@@ -51,6 +51,7 @@ block content %}
 
                 {% if i == 0 %}
                 <!-- Buttons -->
+                <!-- add the busttons for the template matching screen -->
                 <div class=" d-flex col-2 flex-column align-items-center">
                     <!-- <input type="submit" name="action" value="Upload" class="submit-btn rounded-3 w-75 m-2" /> -->
                     <input type="submit" name="action" value="Match_Template" class="submit-btn w-75 m-2" />
@@ -59,11 +60,27 @@ block content %}
                 {% endif %}
                 {% endfor %}
             </div>
+            <div class="bg-light w-100 mt-2" style="position: fixed; bottom: 0; left: 0;">
+                <h3 class="text-center pb-3">Parameters</h3>
+                <div class="container">
+                    <div class="row">
+                        <div class="offset-4 col-2">Similarity Threshold:</div>
+                        <div class="col-1 d-flex">
+                            <input class="parameter" min="0" max="1" value="0.5" step="0.05" type="range"
+                            id="similarityThreshRange" name="SimilarityThreshold" />
+                            <output class="ms-1"></output>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </form>
     </div>
+   
 </div>
 
 <script>
+     const similarity_thresh = parseFloat('{{parameters["similarity_thresh"]}}');
+    $('#SimilarityThreshold').val(similarity_thresh)
     const current_images = JSON.parse('{{ current | tojson | safe}}');
     if (messages.length > 0 || errors.length > 0) {
         const myModal = new bootstrap.Modal(document.getElementById("myModal"));

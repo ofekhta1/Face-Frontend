@@ -77,7 +77,7 @@ block content %}
                 </div>
 
                 {% if i == 0 %}
-                <!-- Buttons -->
+                <!--add the  Buttons for the main page  -->
                 <div class=" d-flex col-2 flex-column align-items-center">
 
                     {% if current | length == 0%}
@@ -85,6 +85,7 @@ block content %}
                     {%else%}
                     {%endif%}
                     <input type="submit" name="action" value="Check" class="submit-btn w-75 m-2" />
+                    <!-- shows the compare button only if the user check 2 faces -->
                     {% if current | length == 2%}
                     <input type="submit" name="action" value="Compare" class="submit-btn w-75 m-2" />
                     {%endif%}

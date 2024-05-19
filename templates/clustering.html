@@ -31,14 +31,14 @@
             {% endfor %}
         </div>
     </div>
-
+    <!-- set up the configured parameters -->
     <div class="bg-light w-100 pb-4 position-relative">
         <h3 class="text-center pb-3">Parameters</h3>
         <div class="container">
             <div class="row">
                 <div class="offset-4 col-2">Similarity Threshold:</div>
                 <div class="col-1 d-flex">
-                    <input class="parameter" min="0" max="1" value="0.5" step="0.05" 
+                    <input class="parameter" min="0" max="1" value="0.5" step="0.01" 
                     id="SimilarityThreshold" type="range" name="SimilarityThreshold" />
                     <output class="ms-1"></output>
                 </div>
@@ -51,6 +51,19 @@
                     <output class="ms-1"></output>
                 </div>
             </div>
+            <div class="row">
+                <div class="offset-4 col-2">Cluster by family:</div>
+                <div class="col-2 d-flex">
+                    <div>
+                        <input type="radio" id="yesOption" name="ClusterFamily" value="yes">
+                        <label for="yesOption">Yes</label>
+                    </div>
+                    <div class="ms-3">
+                        <input type="radio" id="noOption" name="ClusterFamily" value="no" checked>
+                        <label for="noOption">No</label>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -59,10 +72,19 @@
 
 
 <script>
+    //save the thr ,group size and cluster family values 
      const similarity_thresh = parseFloat('{{parameters["similarity_thresh"]}}');
     $('#SimilarityThreshold').val(similarity_thresh)
     const min_group_size = parseInt('{{parameters["min_group_size"]}}');
     $('#MinGroupSize').val(min_group_size)
+    const cluster_family = '{{parameters["cluster_family"] }}';
+    if (cluster_family === 'yes') {
+        $('#yesOption').prop('checked', true);
+    } else if (cluster_family === 'no') {
+        $('#noOption').prop('checked', true);
+    } else {
+        console.error('Unexpected cluster_family value:', cluster_family);
+    }
 </script>
 <script src="{{url_for('static', filename='js/clustering.js')}}"></script>
 {% endblock %}
