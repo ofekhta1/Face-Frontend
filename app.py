@@ -124,17 +124,13 @@ def clustering():
     if request.method == "POST":
         model_name=request.form.get("model_name",default="buffalo_l",type=str);
         try:
-            #cluster the iamges from the jsondata accrodind to the selected thr and group size
+            #cluster the images from the jsondata accroding to the selected threshold and group size
             jsonStr = request.form.get("jsonData", "")
             data = json.loads(jsonStr)
             groups=data["groups"]
-            parameters['cluster_family'] = data.get("cluster_family", None)
+            parameters['cluster_family'] = data.get("cluster_family", False)
             parameters['similarity_thresh']=data["similarity_thresh"];
             parameters['min_group_size']=data["min_group_size"];
-            #for now- if it's the same family its change the threshold to 0.13
-            if(  parameters['cluster_family']=='yes'):
-                   parameters['similarity_thresh']=0.13
-
 
             session["groups"] = groups
         except Exception as e:

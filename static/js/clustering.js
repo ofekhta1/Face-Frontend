@@ -27,10 +27,13 @@ $("#clusterBtn").on("click", async function () {
 $("#groupsBtn").on("click", async function () {
     await get_clusters(false);
 });
+$()
 async function get_clusters(retrain){
-    let cluster_family = $('input[name="ClusterFamily"]:checked').val();
+    let cluster_family = $('#ClusterByFamilySwitch').prop('checked');
     model_name=$("#modelNameSelect").val()
-    let max_distance=1-$("#SimilarityThreshold").val()
+    let similarity_thresh;
+    similarity_thresh=$("#SimilarityThreshold").val()
+    let max_distance=1-similarity_thresh
     let min_group_size=$("#MinGroupSize").val()
     let data = JSON.stringify({
         max_distance: max_distance,
