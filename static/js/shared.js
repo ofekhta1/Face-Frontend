@@ -27,7 +27,7 @@ async function getData(endpoint) {
   }
 }
 function getOriginalImagePath(facePath) {
-  let pattern = /\/static\/[a-zA-Z_]+\/(aligned_(\d+)_)?/;  //  
+  let pattern = /\/static\/[a-zA-Z0-9_]+\/(aligned_(\d+)_)?/;  //  
   let match = pattern.exec(facePath);  // Executing the regex pattern on the string
 
   if (match) {
@@ -107,11 +107,17 @@ function sendJsonFormPost(endpoint,data){
     jsonData.type = 'hidden';
     jsonData.name = 'jsonData'; // This will be the key on the server side
     jsonData.value = JSON.stringify(data);
-    const modelData = document.createElement('input');
-    modelData.type = 'hidden';
-    modelData.name = 'model_name'; // This will be the key on the server side
-    modelData.value = model_name;
-    form.appendChild(modelData)
+    const detectorData = document.createElement('input');
+    const embedderData = document.createElement('input');
+    detectorData.type = 'hidden';
+    detectorData.name = 'detector_name'; // This will be the key on the server side
+    detectorData.value = detector_name;
+    embedderData.type = 'hidden';
+    embedderData.name = 'embedder_name'; // This will be the key on the server side
+    embedderData.value = embedder_name;
+    form.appendChild(detectorData)
+    $("[id^=face_num_input]").appendTo(form);
+    form.appendChild(embedderData)
     form.appendChild(jsonData);
     document.body.appendChild(form);
     form.submit();

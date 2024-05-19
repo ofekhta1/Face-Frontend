@@ -102,12 +102,16 @@ def upload_from_url(website_url):
         else:
             print(f"Failed to fetch the website. Status code: {response.status_code}")
         return messages,errors;
-def upload_from_request(request:Request,current_images:list[str],faces_length:list[int],model_name:str,save_invalid=False):
+def upload_from_request(request:Request,current_images:list[str],faces_length:list[dict[str,list[int]]],
+                        detector_name:str,embedder_name:str,save_invalid=False):
     errors=[]
     with tempfile.TemporaryDirectory() as temp_dir:
         saved_files = saveTempFiles(temp_dir, request.files)
         if len(saved_files) > 0:
-            response = req.post(AppPaths.SERVER_URL + "/api/upload",data={"save_invalid":save_invalid,"model_name":model_name}, files=saved_files)
+            response = req.post(AppPaths.SERVER_URL + "/api/upload",data={"save_invalid":save_invalid,
+                                                                          "detector_name":detector_name,
+                                                                          "embedder_name":embedder_name}
+                                                                          , files=saved_files)
             data = response.json()
             errors = errors + data["errors"]
             if len(data["images"]) > 0 or (save_invalid and len(data["invalid_images"])>0):
@@ -120,7 +124,7 @@ def upload_from_request(request:Request,current_images:list[str],faces_length:li
                         current_images.append(uploaded[i])
                     else:
                         current_images[current_index] = uploaded[i]
-                    faces_length[current_index] = data["faces_length"][i]
+                    faces_length[current_index] = data["detector_indices"][i]
 
 
             for saved in saved_files.values():

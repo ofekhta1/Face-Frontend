@@ -63,7 +63,7 @@ block content %}
                         <div class="form-floating">
                             <select id="combo-box1" class="form-select rounded-0 ">
                                 <option value="-2">All</option>
-                                {% for j in range(faces_length) %}
+                                {%- for j in range(faces_indices[detector_name]|length) %}
                                 <option value="{{ j }}">Face {{ j + 1 }}</option>
                                 {% endfor %}
                             </select>
@@ -85,7 +85,7 @@ block content %}
                 <div class="row g-0">
                     {% for image in images %}
                         <div class="col-3 p-3 d-flex flex-column justify-content-center ">
-                        <img src="http://127.0.0.1:5057/static/{{model_name}}/aligned_{{image['face_num']}}_{{image['image_name']}}" onclick="handleFaceClick(this.src)" />
+                        <img src="http://127.0.0.1:5057/static/{{detector_name}}/aligned_{{image['face_num']}}_{{image['image_name']}}" onclick="handleFaceClick(this.src)" />
                         <p class="text-truncate">aligned_{{image['face_num']}}_{{image['image_name']}}</p>
                     </div>
                     {% endfor %}
@@ -112,6 +112,7 @@ block content %}
 <script>
     const similarity_thresh = parseFloat('{{parameters["similarity_thresh"]}}');
     $('#similarityThreshRange').val(similarity_thresh)
+    const face_indices = JSON.parse('{{ faces_indices | tojson | safe}}');
     const current_images = [JSON.parse('{{ current | tojson | safe}}')];
     const selected_faces = [JSON.parse('{{ selected_face | tojson | safe}}')];
     if (messages.length > 0 || errors.length > 0) {

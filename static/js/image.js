@@ -4,7 +4,7 @@ $('#showFormButton').on('click', function () {
   $('#downloadForm').toggle();
 });
 
-
+ 
 $("#startVideoBtn").on("click", function () {
   const video = $("#video")[0]; // Get the video element using jQuery
   if (current_images.length === 0) {
@@ -84,14 +84,14 @@ function getImgParams($comboBox, areaNumber) {
 function getFaceNums(){
   $("")
 }
-async function getFacePath($comboBox, areaNumber,model_name) {
+async function getFacePath($comboBox, areaNumber,detector_name) {
   let $params = getImgParams($comboBox, areaNumber);
   let path = "";
   let face_num = $params.faceNum;
   if ($params.faceNum == -2) {
     path = SERVER_URL + `/pool/${$params.fileName}`;
   } else {
-    path = SERVER_URL + `/static/${model_name}/aligned_${face_num}_${$params.fileName}`;
+    path = SERVER_URL + `/static/${detector_name}/aligned_${face_num}_${$params.fileName}`;
   }
   const exists = await checkFileExists(path);
   return { path, exists, face_num };
@@ -144,7 +144,7 @@ function setupDropArea($dropArea, areaNumber) {
     let number = parseInt(id.slice(-1)); // Get the last character
     let face_num = getImgParams($comboBox, number).faceNum;
     let landmarks= await findLandmarks(current_images[number - 1], face_num)
-    let path = SERVER_URL + `/static/buffalo_l/${landmarks}`;
+    let path = SERVER_URL + `/static/SCRFD10G/${landmarks}`;
     await loadImage($img[0], path)
 
   })
@@ -213,7 +213,7 @@ function setupDropArea($dropArea, areaNumber) {
   });
 
   $comboBox.on("change", async function () {
-    let result = await getFacePath($(this), areaNumber,model_name);
+    let result = await getFacePath($(this), areaNumber,detector_name);
     if (result.exists) {
       //display
       $(`#face_num_input${areaNumber}`).val(result.face_num);
@@ -264,7 +264,7 @@ $(document).ready(function () {
       } else {
         path =
           SERVER_URL +
-          `/static/buffalo_l/aligned_${selected_faces[index]}_${current_images[index]}`;
+          `/static/${detector_name}/aligned_${selected_faces[index]}_${current_images[index]}`;
         $comboBoxes[index].val(selected_faces[index]);
         $(`#face_num_input${index + 1}`).val(selected_faces[index]);
       }
