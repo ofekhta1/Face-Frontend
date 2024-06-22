@@ -18,7 +18,10 @@
 </head>
 
 <body class="d-flex flex-column">
-
+  <div id="faceActionsMenu" class="context-menu">
+    <button onclick="setAsImage(0)">Set as Image 1</button>
+    <button onclick="setAsImage(1)">Set as Image 2</button>
+</div>
 
   <script>
     const errors = JSON.parse('{{ errors | tojson | safe}}');
@@ -35,9 +38,9 @@
 
   </script>
 <script src="{{url_for('static', filename='js/face-api.js')}}"></script>
-<script src="{{url_for('static', filename='js/shared.js')}}"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"
 integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script src="{{url_for('static', filename='js/shared.js')}}"></script>
 <nav class=" navbar navbar-expand-lg bg-body-tertiary">
   <div class="container-fluid">
     <a class="navbar-brand p-0 me-1" href="/"><img  width="40" height="40" src="{{url_for('static', filename='images/logo_face.png')}}"/></a>
@@ -64,6 +67,9 @@ integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="ano
         <li class="nav-item">
           <a class="nav-link" href="/upload">Upload</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/gallery">Gallery</a>
+        </li>
       </ul>
       <div class="d-flex align-items-center">
         <span class="me-1">Detector:</span>
@@ -75,6 +81,7 @@ integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="ano
         <select class="form-select" name="embedder_name"  id="embedderNameSelect" aria-label="Floating label select ">
           <option value="ResNet100GLint360K">ResNet100</option>
           <option value="ResNet50WebFace600K">ResNet50</option>
+          <option value="KinshipResnet100BB">BB</option>
         </select>
       </div>
     </div>

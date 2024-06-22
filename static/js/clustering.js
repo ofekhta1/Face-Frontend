@@ -28,7 +28,6 @@ $("#groupsBtn").on("click", async function () {
 });
 async function get_clusters(retrain){
     let cluster_family = $('#ClusterByFamilySwitch').prop('checked');
-    model_name=$("#modelNameSelect").val()
     let similarity_thresh;
     similarity_thresh=$("#SimilarityThreshold").val()
     let max_distance=1-similarity_thresh

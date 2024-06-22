@@ -110,10 +110,14 @@ function setupDropArea($dropArea, areaNumber) {
 
 
   $clearBtn.on("click", function () {
+    let similarity_thresh=$("#similarityThreshRange").val()
     let endpoint = window.location.pathname;
     let data = {
       "action": "Clear",
+      "detector_name":detector_name,
+      "embedder_name":embedder_name,
       "index": (areaNumber - 1),
+      "SimilarityThreshold":similarity_thresh
     }
     for(let i=1;i<=2;i++){
       let face_num = getImgParams($(`#combo-box${i}`), i).faceNum;
@@ -123,10 +127,14 @@ function setupDropArea($dropArea, areaNumber) {
   
     sendFormPost(endpoint, data)  });
   $improveBtn.on("click", function () {
+    let similarity_thresh=$("#similarityThreshRange").val()
     let endpoint = window.location.pathname;
     let data = {
-      "action": "improve",
-      "index": areaNumber - 1
+      "action": "Clear",
+      "detector_name":detector_name,
+      "embedder_name":embedder_name,
+      "index": (areaNumber - 1),
+      "SimilarityThreshold":similarity_thresh
     }
     for(let i=1;i<=2;i++){
       let face_num = getImgParams($(`#combo-box${i}`), i).faceNum;
