@@ -11,7 +11,7 @@
             <div class="row">
                 {% for image in images %}
                 <div class="gallery-image col-3 d-flex flex-column justify-content-center m-0">
-                    <img src="http://127.0.0.1:5057/static/SCRFD10G/{{image}}" onclick="handleFaceClick(this.src)" />
+                    <img src="http://127.0.0.1:5057/static/{{detector_name}}/{{image}}" onclick="handleFaceClick(this.src)" />
                     <p class="text-truncate">{{ image }}</p>
                 </div>
                 {% endfor %}
@@ -23,6 +23,5 @@
 
 
 
-<script src="{{url_for('static', filename='js/gallery.js')}}"></script>
 <script src="{{url_for('static', filename='js/clustering.js')}}"></script>
 {% endblock %}

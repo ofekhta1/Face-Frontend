@@ -4,7 +4,7 @@ $('#showFormButton').on('click', function () {
   $('#downloadForm').toggle();
 });
 
- 
+
 $("#startVideoBtn").on("click", function () {
   const video = $("#video")[0]; // Get the video element using jQuery
   if (current_images.length === 0) {
@@ -152,7 +152,7 @@ function setupDropArea($dropArea, areaNumber) {
     let number = parseInt(id.slice(-1)); // Get the last character
     let face_num = getImgParams($comboBox, number).faceNum;
     let landmarks= await findLandmarks(current_images[number - 1], face_num)
-    let path = SERVER_URL + `/static/SCRFD10G/${landmarks}`;
+    let path = SERVER_URL + `/static/${detector_name}/${landmarks}`;
     await loadImage($img[0], path)
 
   })

@@ -45,6 +45,8 @@ async function findLandmarks(image, face_num) {
   } else {
     data.append("images", [image]);
   }
+  data.append("detector_name",detector_name)
+  data.append("embedder_name",embedder_name)
   let result = await postData("detect", data);
   let detected_image = result.images[0];
   return detected_image;
@@ -52,6 +54,8 @@ async function findLandmarks(image, face_num) {
 async function findFace(image, face_num) {
   let data = new FormData();
   data.append("image", image);
+  data.append("detector_name",detector_name)
+  data.append("embedder_name",embedder_name)
   let result = await postData("find", data);
   if (face_num == -2) {
     return result.boxes;

@@ -86,3 +86,5 @@ async function handleFaceClick(src) {
     let newWindow = window.open('', '_blank');
     $(newWindow.document.body).append(canvas);
 }
+
+$(".gallery-image").on("contextmenu",display_faceActionMenu)
